@@ -28,6 +28,8 @@ const Cell = styled.div`
       case 3:
         return '#6fa5cc'
       case 4:
+        return '#5d5d5d'
+      case 5:
         return '#6ccc51'
     }
   }};
@@ -70,7 +72,6 @@ class Grid extends Component {
             <Row key={rowIndex}>
               {new Array(width).fill(0).map((zero, cellIndex) => {
                 const value = this.cellValue(cellIndex, rowIndex)
-
                 return (
                   <Cell key={cellIndex} group={value}>
                     {value}

@@ -272,7 +272,7 @@ class PathFinder {
 
       const searchNode = instance.openList.pop()
 
-      if(searchNode.costSoFar >= 6) {
+      if (searchNode.costSoFar >= 6) {
         continue
       }
 
