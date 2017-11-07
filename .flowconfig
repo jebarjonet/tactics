@@ -1,0 +1,13 @@
+[ignore]
+.*/build/.*
+.*/.flow-typed/.*
+.*/styled-components/.*
+
+[libs]
+.flow-typed
+
+[options]
+# resolve absolute modules imports
+module.name_mapper='^\(.*\)$' -> '<PROJECT_ROOT>/src/\1'
+# disable next line flow error with // disable-flow-next-line
+suppress_comment= \\(.\\|\n\\)*\\disable-flow-next-line

@@ -9,6 +9,7 @@
 
 # misc
 .idea/
+.flow-typed/
 .DS_Store
 .env.local
 .env.development.local

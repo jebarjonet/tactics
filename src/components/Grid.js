@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import _ from 'lodash/fp'
 
-const CELL_SIZE = '20px'
+const CELL_SIZE = 20
 
 const Board = styled.div`
   font-family: monospace;
@@ -14,8 +14,9 @@ const Row = styled.div`
 `
 
 const Cell = styled.div`
-  width: ${CELL_SIZE};
-  height: ${CELL_SIZE};
+  width: ${CELL_SIZE}px;
+  height: ${CELL_SIZE}px;
+  font-size: ${CELL_SIZE / 2}px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
