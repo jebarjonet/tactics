@@ -48,12 +48,28 @@ class Core {
     instance: Object,
     path: Array<NodeType>,
   } => {
-    // temporarily set from and to nodes as walkable
+    // temporarily set start and end nodes as walkable
     this.pathFinder.setGridPointValue(startPoint.x, startPoint.y, 0)
     this.pathFinder.setGridPointValue(endPoint.x, endPoint.y, 0)
 
     // find path
     return this.pathFinder.findPath(startPoint, endPoint)
+  }
+
+  findZone = (
+    startPoint: PointType,
+    distance: number,
+    options: {
+      extension?: number,
+    } = {},
+  ): {
+    instance: Object,
+  } => {
+    // temporarily set start node as walkable
+    this.pathFinder.setGridPointValue(startPoint.x, startPoint.y, 0)
+
+    // find zone
+    return this.pathFinder.findZone(startPoint, distance)
   }
 }
 

@@ -44,7 +44,7 @@ class PathFinder {
   }
 
   /**
-   * Sets the collision grid that EasyStar uses.
+   * Sets the collision grid that PathFinder uses.
    *
    * @param {Array|Number} tiles An array of numbers that represent
    * which tiles in your grid should be considered
@@ -61,9 +61,9 @@ class PathFinder {
   }
 
   /**
-   * Sets the collision grid that EasyStar uses.
+   * Sets the collision grid that PathFinder uses.
    *
-   * @param {Array} grid The collision grid that this EasyStar instance will read from.
+   * @param {Array} grid The collision grid that this PathFinder instance will read from.
    * This should be a 2D Array of Numbers.
    **/
   setGrid = (grid: GridType) => {
@@ -221,14 +221,14 @@ class PathFinder {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
       throw new Error(
-        "You can't set a path without first calling setAcceptableTiles() on EasyStar.",
+        "You can't set a path without first calling setAcceptableTiles() on PathFinder.",
       )
     }
 
     // No grid was set
     if (!this.collisionGrid) {
       throw new Error(
-        "You can't set a path without first calling setGrid() on EasyStar.",
+        "You can't set a path without first calling setGrid() on PathFinder.",
       )
     }
 
@@ -294,10 +294,6 @@ class PathFinder {
 
       const searchNode = instance.openList.pop()
 
-      // if (searchNode.costSoFar >= 6) {
-      //   continue
-      // }
-
       // Handles the case where we have found the destination
       if (endPoint.x === searchNode.x && endPoint.y === searchNode.y) {
         path = []
@@ -352,6 +348,112 @@ class PathFinder {
     }
 
     return { path, instance }
+  }
+
+  /**
+   * Find a zone.
+   *
+   * @param {Object} startPoint The position of the starting point.
+   * @param {Object} distance The distance travelled by finder
+   * @return {Object}
+   *
+   **/
+  findZone = (startPoint: PointType, distance: number) => {
+    // No acceptable tiles were set
+    if (!this.acceptableTiles) {
+      throw new Error(
+        "You can't set a path without first calling setAcceptableTiles() on PathFinder.",
+      )
+    }
+
+    // No grid was set
+    if (!this.collisionGrid) {
+      throw new Error(
+        "You can't set a path without first calling setGrid() on PathFinder.",
+      )
+    }
+
+    // Start or endpoint outside of scope.
+    if (
+      startPoint.x < 0 ||
+      startPoint.y < 0 ||
+      startPoint.x > this.collisionGrid[0].length - 1 ||
+      startPoint.y > this.collisionGrid.length - 1
+    ) {
+      throw new Error(
+        'Your start or end point is outside the scope of your grid.',
+      )
+    }
+
+    // Create the instance
+    const instance = new Instance()
+    instance.openList = new Heap(
+      (nodeA, nodeB) => nodeA.bestGuessDistance() - nodeB.bestGuessDistance(),
+    )
+    instance.nodeHash = {}
+    instance.startPoint = startPoint
+    instance.openList.push(
+      this.coordinateToNode(instance, startPoint, null, STRAIGHT_COST),
+    )
+
+    for (
+      let iterationsSoFar = 0;
+      iterationsSoFar < this.iterationsPerCalculation;
+      iterationsSoFar++
+    ) {
+      // Couldn't find a path.
+      if (instance.openList.size() === 0) {
+        break
+      }
+
+      const searchNode = instance.openList.pop()
+
+      // don't go further if distance is reached
+      if (searchNode.costSoFar >= distance) {
+        continue
+      }
+
+      searchNode.list = CLOSED_LIST
+
+      if (searchNode.y > 0) {
+        this.checkAdjacentNode(
+          instance,
+          searchNode,
+          0,
+          -1,
+          STRAIGHT_COST * this.getTileCost(searchNode.x, searchNode.y - 1),
+        )
+      }
+      if (searchNode.x < this.collisionGrid[0].length - 1) {
+        this.checkAdjacentNode(
+          instance,
+          searchNode,
+          1,
+          0,
+          STRAIGHT_COST * this.getTileCost(searchNode.x + 1, searchNode.y),
+        )
+      }
+      if (searchNode.y < this.collisionGrid.length - 1) {
+        this.checkAdjacentNode(
+          instance,
+          searchNode,
+          0,
+          1,
+          STRAIGHT_COST * this.getTileCost(searchNode.x, searchNode.y + 1),
+        )
+      }
+      if (searchNode.x > 0) {
+        this.checkAdjacentNode(
+          instance,
+          searchNode,
+          -1,
+          0,
+          STRAIGHT_COST * this.getTileCost(searchNode.x - 1, searchNode.y),
+        )
+      }
+    }
+
+    return { instance }
   }
 
   checkAdjacentNode = (
@@ -450,12 +552,7 @@ class PathFinder {
     } else {
       instance.nodeHash[y] = {}
     }
-    const simpleDistanceToTarget = this.getDistance(
-      x,
-      y,
-      instance.endPoint.x,
-      instance.endPoint.y,
-    )
+    const simpleDistanceToTarget = this.getDistance({ x, y }, instance.endPoint)
     let costSoFar = 0
     if (parent) {
       costSoFar = parent.costSoFar + cost
@@ -465,10 +562,14 @@ class PathFinder {
     return node
   }
 
-  getDistance = (x1: number, y1: number, x2: number, y2: number) => {
+  getDistance = (startPoint: PointType, endPoint: ?PointType) => {
+    if (!endPoint) {
+      return 1
+    }
+
     // Manhattan distance
-    const dx = Math.abs(x1 - x2)
-    const dy = Math.abs(y1 - y2)
+    const dx = Math.abs(startPoint.x - endPoint.x)
+    const dy = Math.abs(startPoint.y - endPoint.y)
     return dx + dy
   }
 }
