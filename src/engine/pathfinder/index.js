@@ -1,12 +1,15 @@
 // @flow
 
 import Heap from 'heap'
+import { clone, flow, flattenDeep, map, uniqBy } from 'lodash/fp'
 
+import { hashToArray } from '../utils'
 import Instance from './instance'
 import Node from './node'
 import type {
   Grid as GridType,
   Point as PointType,
+  CostPoint as CostPointType,
   Node as NodeType,
 } from '../types'
 
@@ -50,7 +53,7 @@ class PathFinder {
    * which tiles in your grid should be considered
    * acceptable, or "walkable".
    **/
-  setAcceptableTiles = (tiles: Array<number>) => {
+  setAcceptableTiles = (tiles: Array<number>): void => {
     if (tiles instanceof Array) {
       // Array
       this.acceptableTiles = tiles
@@ -66,7 +69,7 @@ class PathFinder {
    * @param {Array} grid The collision grid that this PathFinder instance will read from.
    * This should be a 2D Array of Numbers.
    **/
-  setGrid = (grid: GridType) => {
+  setGrid = (grid: GridType): void => {
     this.collisionGrid = grid
 
     // setup cost map
@@ -86,7 +89,7 @@ class PathFinder {
    * @param {Number} y The y value of the point to cost.
    * @param {Number} value The cell value with the given tile.
    **/
-  setGridPointValue = (x: number, y: number, value: number) => {
+  setGridPointValue = ({ x, y }: PointType, value: number): void => {
     this.collisionGrid[y][x] = value
 
     if (!this.costMap[this.collisionGrid[y][x]]) {
@@ -100,7 +103,7 @@ class PathFinder {
    * @param {Number} tileType The tile type to set the cost for.
    * @param {Number} cost The multiplicative cost associated with the given tile.
    **/
-  setTileCost = (tileType: number, cost: number) => {
+  setTileCost = (tileType: number, cost: number): void => {
     this.costMap[tileType] = cost
   }
 
@@ -112,7 +115,7 @@ class PathFinder {
    * @param {Number} y The y value of the point to cost.
    * @param {Number} cost The multiplicative cost associated with the given point.
    **/
-  setAdditionalPointCost = (x: number, y: number, cost: number) => {
+  setAdditionalPointCost = ({ x, y }: PointType, cost: number): void => {
     if (!this.pointsToCost[y]) {
       this.pointsToCost[y] = {}
     }
@@ -125,7 +128,7 @@ class PathFinder {
    * @param {Number} x The x value of the point to stop costing.
    * @param {Number} y The y value of the point to stop costing.
    **/
-  removeAdditionalPointCost = (x: number, y: number) => {
+  removeAdditionalPointCost = ({ x, y }: PointType): void => {
     if (this.pointsToCost[y]) {
       delete this.pointsToCost[y][x]
     }
@@ -134,7 +137,7 @@ class PathFinder {
   /**
    * Remove all additional point costs.
    **/
-  removeAllAdditionalPointCosts = () => {
+  removeAllAdditionalPointCosts = (): void => {
     this.pointsToCost = {}
   }
 
@@ -147,10 +150,9 @@ class PathFinder {
    * the tile.
    **/
   setDirectionalCondition = (
-    x: number,
-    y: number,
+    { x, y }: PointType,
     allowedDirections: DirectionType,
-  ) => {
+  ): void => {
     if (!this.directionalConditions[y]) {
       this.directionalConditions[y] = {}
     }
@@ -160,7 +162,7 @@ class PathFinder {
   /**
    * Remove all directional conditions
    **/
-  removeAllDirectionalConditions = () => {
+  removeAllDirectionalConditions = (): void => {
     this.directionalConditions = {}
   }
 
@@ -172,7 +174,7 @@ class PathFinder {
    *
    * @param {Number} iterations The number of searches to prefrom per calculate() call.
    **/
-  setIterationsPerCalculation = (iterations: number) => {
+  setIterationsPerCalculation = (iterations: number): void => {
     this.iterationsPerCalculation = iterations
   }
 
@@ -183,7 +185,7 @@ class PathFinder {
    * @param {Number} x The x value of the point to avoid.
    * @param {Number} y The y value of the point to avoid.
    **/
-  avoidAdditionalPoint = (x: number, y: number) => {
+  avoidAdditionalPoint = ({ x, y }: PointType): void => {
     if (!this.pointsToAvoid[y]) {
       this.pointsToAvoid[y] = {}
     }
@@ -196,7 +198,7 @@ class PathFinder {
    * @param {Number} x The x value of the point to stop avoiding.
    * @param {Number} y The y value of the point to stop avoiding.
    **/
-  stopAvoidingAdditionalPoint = (x: number, y: number) => {
+  stopAvoidingAdditionalPoint = ({ x, y }: PointType): void => {
     if (this.pointsToAvoid[y]) {
       delete this.pointsToAvoid[y][x]
     }
@@ -205,7 +207,7 @@ class PathFinder {
   /**
    * Stop avoiding all additional points on the grid.
    **/
-  stopAvoidingAllAdditionalPoints = () => {
+  stopAvoidingAllAdditionalPoints = (): void => {
     this.pointsToAvoid = {}
   }
 
@@ -217,7 +219,13 @@ class PathFinder {
    * @return {Object}
    *
    **/
-  findPath = (startPoint: PointType, endPoint: PointType) => {
+  findPath = (
+    startPoint: PointType,
+    endPoint: PointType,
+  ): {
+    path: ?Array<NodeType>,
+    searchZone?: Array<NodeType>,
+  } => {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
       throw new Error(
@@ -264,7 +272,7 @@ class PathFinder {
     }
 
     if (isAcceptable === false) {
-      return {}
+      return { path: null }
     }
 
     // Create the instance
@@ -297,10 +305,10 @@ class PathFinder {
       // Handles the case where we have found the destination
       if (endPoint.x === searchNode.x && endPoint.y === searchNode.y) {
         path = []
-        path.push({ x: searchNode.x, y: searchNode.y })
+        path.push(clone(searchNode))
         let parent = searchNode.parent
         while (parent) {
-          path.push({ x: parent.x, y: parent.y })
+          path.push(clone(parent))
           parent = parent.parent
         }
         path.reverse()
@@ -309,45 +317,10 @@ class PathFinder {
 
       searchNode.list = CLOSED_LIST
 
-      if (searchNode.y > 0) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          0,
-          -1,
-          STRAIGHT_COST * this.getTileCost(searchNode.x, searchNode.y - 1),
-        )
-      }
-      if (searchNode.x < this.collisionGrid[0].length - 1) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          1,
-          0,
-          STRAIGHT_COST * this.getTileCost(searchNode.x + 1, searchNode.y),
-        )
-      }
-      if (searchNode.y < this.collisionGrid.length - 1) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          0,
-          1,
-          STRAIGHT_COST * this.getTileCost(searchNode.x, searchNode.y + 1),
-        )
-      }
-      if (searchNode.x > 0) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          -1,
-          0,
-          STRAIGHT_COST * this.getTileCost(searchNode.x - 1, searchNode.y),
-        )
-      }
+      this.checkAdjacentNodes(instance, searchNode)
     }
 
-    return { path, instance }
+    return { path, searchZone: hashToArray(instance.nodeHash), instance }
   }
 
   /**
@@ -355,10 +328,18 @@ class PathFinder {
    *
    * @param {Object} startPoint The position of the starting point.
    * @param {Object} distance The distance travelled by finder
+   * @param {Object} options Zone finder options
    * @return {Object}
    *
    **/
-  findZone = (startPoint: PointType, distance: number) => {
+  findZone = (
+    startPoint: PointType,
+    distance: number,
+    { extension = 0 }: { extension?: number },
+  ): {
+    zone: Array<NodeType>,
+    extendedZone?: Array<CostPointType>,
+  } => {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
       throw new Error(
@@ -401,7 +382,7 @@ class PathFinder {
       iterationsSoFar < this.iterationsPerCalculation;
       iterationsSoFar++
     ) {
-      // Couldn't find a path.
+      // couldn't extend zone anymore
       if (instance.openList.size() === 0) {
         break
       }
@@ -409,67 +390,103 @@ class PathFinder {
       const searchNode = instance.openList.pop()
 
       // don't go further if distance is reached
-      if (searchNode.costSoFar >= distance) {
+      if (searchNode.cost >= distance) {
         continue
       }
 
       searchNode.list = CLOSED_LIST
 
-      if (searchNode.y > 0) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          0,
-          -1,
-          STRAIGHT_COST * this.getTileCost(searchNode.x, searchNode.y - 1),
-        )
-      }
-      if (searchNode.x < this.collisionGrid[0].length - 1) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          1,
-          0,
-          STRAIGHT_COST * this.getTileCost(searchNode.x + 1, searchNode.y),
-        )
-      }
-      if (searchNode.y < this.collisionGrid.length - 1) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          0,
-          1,
-          STRAIGHT_COST * this.getTileCost(searchNode.x, searchNode.y + 1),
-        )
-      }
-      if (searchNode.x > 0) {
-        this.checkAdjacentNode(
-          instance,
-          searchNode,
-          -1,
-          0,
-          STRAIGHT_COST * this.getTileCost(searchNode.x - 1, searchNode.y),
-        )
-      }
+      this.checkAdjacentNodes(instance, searchNode)
     }
 
-    return { instance }
+    const result = { instance, zone: hashToArray(instance.nodeHash) }
+
+    if (extension) {
+      // todo: fix flow
+      // disable-flow-next-line
+      result.extendedZone = this.extendZone(
+        hashToArray(instance.nodeHash),
+        extension,
+      )
+      console.log('s', result.extendedZone)
+    }
+
+    return result
   }
 
+  /**
+   * [Path finding] Checks nodes adjacent to central one
+   * @param instance
+   * @param searchNode
+   */
+  checkAdjacentNodes = (instance: InstanceType, searchNode: NodeType): void => {
+    if (searchNode.y > 0) {
+      this.checkAdjacentNode(
+        instance,
+        searchNode,
+        0,
+        -1,
+        STRAIGHT_COST *
+          this.getTileCost({ x: searchNode.x, y: searchNode.y - 1 }),
+      )
+    }
+    if (searchNode.x < this.collisionGrid[0].length - 1) {
+      this.checkAdjacentNode(
+        instance,
+        searchNode,
+        1,
+        0,
+        STRAIGHT_COST *
+          this.getTileCost({ x: searchNode.x + 1, y: searchNode.y }),
+      )
+    }
+    if (searchNode.y < this.collisionGrid.length - 1) {
+      this.checkAdjacentNode(
+        instance,
+        searchNode,
+        0,
+        1,
+        STRAIGHT_COST *
+          this.getTileCost({ x: searchNode.x, y: searchNode.y + 1 }),
+      )
+    }
+    if (searchNode.x > 0) {
+      this.checkAdjacentNode(
+        instance,
+        searchNode,
+        -1,
+        0,
+        STRAIGHT_COST *
+          this.getTileCost({ x: searchNode.x - 1, y: searchNode.y }),
+      )
+    }
+  }
+
+  /**
+   * [Path finding] Adds/Updates node in list of traversed nodes
+   * @param instance
+   * @param searchNode
+   * @param diffX
+   * @param diffY
+   * @param cost
+   */
   checkAdjacentNode = (
     instance: InstanceType,
     searchNode: NodeType,
-    x: number,
-    y: number,
+    diffX: number,
+    diffY: number,
     cost: number,
-  ) => {
-    const adjacentCoordinateX = searchNode.x + x
-    const adjacentCoordinateY = searchNode.y + y
+  ): void => {
+    const adjacentCoordinateX = searchNode.x + diffX
+    const adjacentCoordinateY = searchNode.y + diffY
 
     if (
       (!this.pointsToAvoid[adjacentCoordinateY] ||
         !this.pointsToAvoid[adjacentCoordinateY][adjacentCoordinateX]) &&
-      this.isTileWalkable(adjacentCoordinateX, adjacentCoordinateY, searchNode)
+      this.isTileWalkable(
+        { x: adjacentCoordinateX, y: adjacentCoordinateY },
+        searchNode,
+      )
     ) {
       const node = this.coordinateToNode(
         instance,
@@ -484,17 +501,25 @@ class PathFinder {
       if (node.list === undefined) {
         node.list = OPEN_LIST
         instance.openList.push(node)
-      } else if (searchNode.costSoFar + cost < node.costSoFar) {
-        node.costSoFar = searchNode.costSoFar + cost
+      } else if (searchNode.cost + cost < node.cost) {
+        node.cost = searchNode.cost + cost
         node.parent = searchNode
         instance.openList.updateItem(node)
       }
     }
   }
 
-  isTileWalkable = (x: number, y: number, sourceNode: NodeType) => {
+  /**
+   * Returns true if tile is walkable
+   * @param x
+   * @param y
+   * @param sourceNode
+   * @returns {boolean}
+   */
+  isTileWalkable = ({ x, y }: PointType, sourceNode: PointType): boolean => {
     const directionalCondition =
       this.directionalConditions[y] && this.directionalConditions[y][x]
+
     if (directionalCondition) {
       const direction = this.calculateDirection(
         sourceNode.x - x,
@@ -508,6 +533,7 @@ class PathFinder {
       }
       if (!directionIncluded()) return false
     }
+
     for (let i = 0; i < this.acceptableTiles.length; i++) {
       if (this.collisionGrid[y][x] === this.acceptableTiles[i]) {
         return true
@@ -518,11 +544,12 @@ class PathFinder {
   }
 
   /**
+   * Returns direction constant for passed position differences
    * -1, -1 | 0, -1  | 1, -1
    * -1,  0 | SOURCE | 1,  0
    * -1,  1 | 0,  1  | 1,  1
    */
-  calculateDirection = (diffX: number, diffY: number) => {
+  calculateDirection = (diffX: number, diffY: number): DirectionType => {
     if (diffX === 0 && diffY === -1) return PathFinder.TOP
     else if (diffX === 1 && diffY === 0) return PathFinder.RIGHT
     else if (diffX === 0 && diffY === 1) return PathFinder.BOTTOM
@@ -530,13 +557,27 @@ class PathFinder {
     throw new Error('These differences are not valid: ' + diffX + ', ' + diffY)
   }
 
-  getTileCost = (x: number, y: number) => {
+  /**
+   * Returns cost of tile at position
+   * @param x
+   * @param y
+   * @returns {*}
+   */
+  getTileCost = ({ x, y }: PointType): number => {
     return (
       (this.pointsToCost[y] && this.pointsToCost[y][x]) ||
       this.costMap[this.collisionGrid[y][x]]
     )
   }
 
+  /**
+   * Transforms coordinate (x & y point) into node with cost
+   * @param instance
+   * @param point
+   * @param parent
+   * @param cost
+   * @returns {*}
+   */
   coordinateToNode = (
     instance: InstanceType,
     point: PointType,
@@ -555,22 +596,47 @@ class PathFinder {
     const simpleDistanceToTarget = this.getDistance({ x, y }, instance.endPoint)
     let costSoFar = 0
     if (parent) {
-      costSoFar = parent.costSoFar + cost
+      costSoFar = parent.cost + cost
     }
     const node = new Node(parent, x, y, costSoFar, simpleDistanceToTarget)
     instance.nodeHash[y][x] = node
     return node
   }
 
-  getDistance = (startPoint: PointType, endPoint: ?PointType) => {
+  /**
+   * Returns Manhattan distance between two points
+   * @param startPoint
+   * @param endPoint
+   * @returns {number}
+   */
+  getDistance = (startPoint: PointType, endPoint: ?PointType): number => {
     if (!endPoint) {
       return 1
     }
 
-    // Manhattan distance
     const dx = Math.abs(startPoint.x - endPoint.x)
     const dy = Math.abs(startPoint.y - endPoint.y)
     return dx + dy
+  }
+
+  // todo: make this function work correctly
+  extendZone = (
+    zone: Array<NodeType> | Array<PointType>,
+    distance: number,
+  ): Array<CostPointType> => {
+    return flow([
+      map(({ x, y }) => {
+        const neighbors = []
+        for (let diffY = -distance; diffY <= distance; diffY++) {
+          for (let diffX = -distance; diffX <= distance; diffX++) {
+            neighbors.push({ x: x + diffX, y: y + diffY, cost: 0 })
+          }
+        }
+        return neighbors
+      }),
+      flattenDeep,
+      uniqBy(({ x, y }) => `${x}:${y}`),
+    ])(zone)
   }
 }
 

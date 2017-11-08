@@ -7,11 +7,11 @@ import type { Node as NodeType } from '../types'
  * @param {Object} parent The parent node.
  * @param {Number} x The x position on the grid.
  * @param {Number} y The y position on the grid.
- * @param {Number} costSoFar How far this node is in moves*cost from the start.
+ * @param {Number} cost How far this node is in moves*cost from the start.
  * @param {Number} simpleDistanceToTarget Manhatten distance to the end point.
  **/
 class Node {
-  costSoFar: number
+  cost: number
   parent: ?NodeType
   simpleDistanceToTarget: number
   x: number
@@ -21,13 +21,13 @@ class Node {
     parent: ?NodeType,
     x: number,
     y: number,
-    costSoFar: number,
+    cost: number,
     simpleDistanceToTarget: number,
   ) {
     this.parent = parent
     this.x = x
     this.y = y
-    this.costSoFar = costSoFar
+    this.cost = cost
     this.simpleDistanceToTarget = simpleDistanceToTarget
   }
 
@@ -35,7 +35,7 @@ class Node {
    * @return {Number} Best guess distance of a cost using this node.
    **/
   bestGuessDistance = (): number => {
-    return this.costSoFar + this.simpleDistanceToTarget
+    return this.cost + this.simpleDistanceToTarget
   }
 }
 

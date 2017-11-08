@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
-import _ from 'lodash/fp'
+import { findIndex } from 'lodash/fp'
 
 const CELL_SIZE = 20
 
@@ -22,28 +22,19 @@ const Cell = styled.div`
   justify-content: center;
   background-color: ${({ group }) => {
     switch (group) {
-      case 1:
+      case 1: // main points
         return '#cc9b4d'
-      case 2:
+      case 2: // path
         return '#cc5e75'
-      case 3:
-        return '#6fa5cc'
-      case 4:
+      case 3: // blocked points
         return '#5d5d5d'
-      case 5:
+      case 4: // zone 1
+        return '#6fa5cc'
+      case 5: // zone 2
         return '#6ccc51'
     }
   }};
 `
-
-/**
- * Transforms a nodeHash into array of Nodes
- * @param nodeHash
- * @returns {*}
- */
-export const hashToArray = nodeHash => {
-  return _.flow([_.map(_.map(_.identity)), _.flattenDeep])(nodeHash)
-}
 
 class Grid extends Component {
   static propTypes = {
@@ -57,7 +48,7 @@ class Grid extends Component {
   }
 
   cellValue = (x, y) => {
-    const existingGroupId = _.findIndex(group => {
+    const existingGroupId = findIndex(group => {
       return group.some(cell => cell.x === x && cell.y === y)
     })(this.props.groups)
     return existingGroupId >= 0 ? existingGroupId + 1 : '.'

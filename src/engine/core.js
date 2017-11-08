@@ -1,6 +1,6 @@
 // @flow
 
-import _ from 'lodash/fp'
+import { sample } from 'lodash/fp'
 
 import PathFinder from './pathfinder'
 import type {
@@ -29,7 +29,7 @@ class Core {
       grid[i] = []
       for (let j = 0; j < size; j++) {
         // set a random value in cell: 3 chances out of 4 to be walkable
-        grid[i][j] = _.sample([0, 0, 0, 1])
+        grid[i][j] = sample([0, 0, 0, 1])
       }
     }
 
@@ -49,8 +49,8 @@ class Core {
     path: Array<NodeType>,
   } => {
     // temporarily set start and end nodes as walkable
-    this.pathFinder.setGridPointValue(startPoint.x, startPoint.y, 0)
-    this.pathFinder.setGridPointValue(endPoint.x, endPoint.y, 0)
+    this.pathFinder.setGridPointValue(startPoint, 0)
+    this.pathFinder.setGridPointValue(endPoint, 0)
 
     // find path
     return this.pathFinder.findPath(startPoint, endPoint)
@@ -66,10 +66,10 @@ class Core {
     instance: Object,
   } => {
     // temporarily set start node as walkable
-    this.pathFinder.setGridPointValue(startPoint.x, startPoint.y, 0)
+    this.pathFinder.setGridPointValue(startPoint, 0)
 
     // find zone
-    return this.pathFinder.findZone(startPoint, distance)
+    return this.pathFinder.findZone(startPoint, distance, options)
   }
 }
 
