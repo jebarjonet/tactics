@@ -59,10 +59,10 @@ class Grid extends Component {
 
     return (
       <Board>
-        {new Array(height).fill(0).map((zero, rowIndex) => {
+        {[...new Array(height)].map((_, rowIndex) => {
           return (
             <Row key={rowIndex}>
-              {new Array(width).fill(0).map((zero, cellIndex) => {
+              {[...new Array(width)].map((_, cellIndex) => {
                 const value = this.cellValue(cellIndex, rowIndex)
                 return (
                   <Cell key={cellIndex} group={value}>

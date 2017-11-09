@@ -1,7 +1,7 @@
 // @flow
 
 import Heap from 'heap'
-import { clone, flow, flattenDeep, map, uniqBy } from 'lodash/fp'
+import { clone, flow, reduce } from 'lodash/fp'
 
 import { hashToArray } from '../utils'
 import Instance from './instance'
@@ -9,7 +9,7 @@ import Node from './node'
 import type {
   Grid as GridType,
   Point as PointType,
-  CostPoint as CostPointType,
+  ExtendedZonePoint as ExtendedZonePointType,
   Node as NodeType,
 } from '../types'
 
@@ -241,16 +241,7 @@ class PathFinder {
     }
 
     // Start or endpoint outside of scope.
-    if (
-      startPoint.x < 0 ||
-      startPoint.y < 0 ||
-      endPoint.x < 0 ||
-      endPoint.y < 0 ||
-      startPoint.x > this.collisionGrid[0].length - 1 ||
-      startPoint.y > this.collisionGrid.length - 1 ||
-      endPoint.x > this.collisionGrid[0].length - 1 ||
-      endPoint.y > this.collisionGrid.length - 1
-    ) {
+    if (this.pointIsOutOfGrid(startPoint) || this.pointIsOutOfGrid(endPoint)) {
       throw new Error(
         'Your start or end point is outside the scope of your grid.',
       )
@@ -338,7 +329,7 @@ class PathFinder {
     { extension = 0 }: { extension?: number },
   ): {
     zone: Array<NodeType>,
-    extendedZone?: Array<CostPointType>,
+    extendedZone?: Array<ExtendedZonePointType>,
   } => {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
@@ -355,12 +346,7 @@ class PathFinder {
     }
 
     // Start or endpoint outside of scope.
-    if (
-      startPoint.x < 0 ||
-      startPoint.y < 0 ||
-      startPoint.x > this.collisionGrid[0].length - 1 ||
-      startPoint.y > this.collisionGrid.length - 1
-    ) {
+    if (this.pointIsOutOfGrid(startPoint)) {
       throw new Error(
         'Your start or end point is outside the scope of your grid.',
       )
@@ -619,24 +605,79 @@ class PathFinder {
     return dx + dy
   }
 
-  // todo: make this function work correctly
+  /**
+   * Returns extended zone of passed zone on an extra distance
+   * This extra distance runs without taking walkability into account
+   * @param zone
+   * @param distance
+   * @returns {*}
+   */
   extendZone = (
     zone: Array<NodeType> | Array<PointType>,
     distance: number,
-  ): Array<CostPointType> => {
+  ): Array<ExtendedZonePointType> => {
     return flow([
-      map(({ x, y }) => {
-        const neighbors = []
+      reduce((result, { x, y }: PointType): {
+        [y: number]: { [x: number]: ExtendedZonePointType },
+      } => {
         for (let diffY = -distance; diffY <= distance; diffY++) {
+          if (!result[y + diffY]) {
+            result[y + diffY] = {}
+          }
+
           for (let diffX = -distance; diffX <= distance; diffX++) {
-            neighbors.push({ x: x + diffX, y: y + diffY, cost: 0 })
+            const point: ExtendedZonePointType = {
+              distance: 0,
+              x: x + diffX,
+              y: y + diffY,
+              parent: { x, y },
+            }
+
+            // give up if point is out of grid
+            if (this.pointIsOutOfGrid(point)) {
+              continue
+            }
+
+            const distanceFromSource = this.getDistance({ x, y }, point)
+
+            // give up if point is too far from source
+            if (distanceFromSource > distance) {
+              continue
+            }
+
+            point.distance = distanceFromSource
+
+            // set point in hash if empty at its coordinates
+            if (!result[point.y][point.x]) {
+              result[point.y][point.x] = point
+              continue
+            }
+
+            // update point in hash if less far from initial zone than already
+            // present point
+            if (point.distance < result[point.y][point.x].distance) {
+              result[point.y][point.x] = point
+            }
           }
         }
-        return neighbors
-      }),
-      flattenDeep,
-      uniqBy(({ x, y }) => `${x}:${y}`),
+        return result
+      }, {}),
+      hashToArray,
     ])(zone)
+  }
+
+  /**
+   * Returns true if point is out of grid
+   * @param point
+   * @returns {boolean}
+   */
+  pointIsOutOfGrid = (point: PointType): boolean => {
+    return (
+      point.x < 0 ||
+      point.y < 0 ||
+      point.x > this.collisionGrid[0].length - 1 ||
+      point.y > this.collisionGrid.length - 1
+    )
   }
 }
 

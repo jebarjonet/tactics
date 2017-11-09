@@ -5,7 +5,12 @@ import Core from 'engine/core'
 
 import Grid from './components/Grid'
 
-const gridSize = 20
+const gridSize = 20 // must be an even number
+
+if (gridSize % 2 !== 0) {
+  throw new Error('Grid size must be an even number')
+}
+
 const core = new Core(gridSize)
 
 class App extends Component {
