@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
-import { findIndex } from 'lodash/fp'
 
 const CELL_SIZE = 20
 
@@ -20,8 +19,8 @@ const Cell = styled.div`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: ${({ group }) => {
-    switch (group) {
+  background-color: ${({ groupIndex }) => {
+    switch (groupIndex) {
       case 1: // main points
         return '#cc9b4d'
       case 2: // path
@@ -32,6 +31,8 @@ const Cell = styled.div`
         return '#6fa5cc'
       case 5: // zone 2
         return '#6ccc51'
+      default:
+        return '#f4f4f4'
     }
   }};
 `
@@ -47,11 +48,28 @@ class Grid extends Component {
     groups: [],
   }
 
-  cellValue = (x, y) => {
-    const existingGroupId = findIndex(group => {
-      return group.some(cell => cell.x === x && cell.y === y)
-    })(this.props.groups)
-    return existingGroupId >= 0 ? existingGroupId + 1 : '.'
+  cellConfig = (x, y) => {
+    const { groups } = this.props
+
+    let config = {
+      groupIndex: 0,
+    }
+
+    groups.some((group, index) => {
+      const point = group.find(cell => cell.x === x && cell.y === y)
+
+      if (!point) {
+        return false
+      }
+
+      config = {
+        groupIndex: index + 1,
+        point,
+      }
+      return true
+    })
+
+    return config
   }
 
   render() {
@@ -63,10 +81,13 @@ class Grid extends Component {
           return (
             <Row key={rowIndex}>
               {[...new Array(width)].map((_, cellIndex) => {
-                const value = this.cellValue(cellIndex, rowIndex)
+                const { groupIndex, point } = this.cellConfig(
+                  cellIndex,
+                  rowIndex,
+                )
                 return (
-                  <Cell key={cellIndex} group={value}>
-                    {value}
+                  <Cell key={cellIndex} groupIndex={groupIndex}>
+                    {!!point && (point.cost || point.distance)}
                   </Cell>
                 )
               })}

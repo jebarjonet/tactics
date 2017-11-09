@@ -3,11 +3,8 @@
 import { sample } from 'lodash/fp'
 
 import PathFinder from './pathfinder'
-import type {
-  Grid as GridType,
-  Point as PointType,
-  Node as NodeType,
-} from './types'
+import type { FindPathType, FindZoneType } from './pathfinder'
+import type { Grid as GridType, Point as PointType } from './types'
 
 class Core {
   grid: ?GridType
@@ -41,13 +38,7 @@ class Core {
     this.pathFinder.setGrid(grid)
   }
 
-  findPath = (
-    startPoint: PointType,
-    endPoint: PointType,
-  ): {
-    instance: Object,
-    path: Array<NodeType>,
-  } => {
+  findPath = (startPoint: PointType, endPoint: PointType): FindPathType => {
     // temporarily set start and end nodes as walkable
     this.pathFinder.setGridPointValue(startPoint, 0)
     this.pathFinder.setGridPointValue(endPoint, 0)
@@ -62,9 +53,7 @@ class Core {
     options: {
       extension?: number,
     } = {},
-  ): {
-    instance: Object,
-  } => {
+  ): FindZoneType => {
     // temporarily set start node as walkable
     this.pathFinder.setGridPointValue(startPoint, 0)
 

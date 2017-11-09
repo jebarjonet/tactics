@@ -13,8 +13,20 @@ import type {
   Node as NodeType,
 } from '../types'
 
+// existing directions for nodes search
 type DirectionType = 'TOP' | 'RIGHT' | 'BOTTOM' | 'LEFT'
+// instance of search nodes
 type InstanceType = Object
+// result of path finding
+export type FindPathType = {
+  path: ?Array<NodeType>,
+  searchZone?: Array<NodeType>,
+}
+// result of zone finding
+export type FindZoneType = {
+  zone: Array<NodeType>,
+  extendedZone?: Array<ExtendedZonePointType>,
+}
 
 const CLOSED_LIST = 0
 const OPEN_LIST = 1
@@ -219,13 +231,7 @@ class PathFinder {
    * @return {Object}
    *
    **/
-  findPath = (
-    startPoint: PointType,
-    endPoint: PointType,
-  ): {
-    path: ?Array<NodeType>,
-    searchZone?: Array<NodeType>,
-  } => {
+  findPath = (startPoint: PointType, endPoint: PointType): FindPathType => {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
       throw new Error(
@@ -327,10 +333,7 @@ class PathFinder {
     startPoint: PointType,
     distance: number,
     { extension = 0 }: { extension?: number },
-  ): {
-    zone: Array<NodeType>,
-    extendedZone?: Array<ExtendedZonePointType>,
-  } => {
+  ): FindZoneType => {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
       throw new Error(
@@ -385,16 +388,16 @@ class PathFinder {
       this.checkAdjacentNodes(instance, searchNode)
     }
 
-    const result = { instance, zone: hashToArray(instance.nodeHash) }
+    const result: FindZoneType = {
+      instance,
+      zone: hashToArray(instance.nodeHash),
+    }
 
     if (extension) {
-      // todo: fix flow
-      // disable-flow-next-line
       result.extendedZone = this.extendZone(
         hashToArray(instance.nodeHash),
         extension,
       )
-      console.log('s', result.extendedZone)
     }
 
     return result
