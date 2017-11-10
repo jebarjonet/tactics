@@ -50,9 +50,7 @@ class Core {
   findZone = (
     startPoint: PointType,
     distance: number,
-    options: {
-      extension?: number,
-    } = {},
+    options: Object = {},
   ): FindZoneType => {
     // temporarily set start node as walkable
     this.pathFinder.setGridPointValue(startPoint, 0)

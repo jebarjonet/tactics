@@ -44,7 +44,6 @@ class App extends Component {
       console.log('Path was not found.')
     } else {
       console.log('Path was found')
-      console.log(path, searchZone)
       const blockedNodes = this.getUnwalkableTiles()
       this.setState({
         groups: [[startPoint, endPoint], path, blockedNodes, searchZone],
@@ -55,16 +54,34 @@ class App extends Component {
   findZoneExample = () => {
     const startPoint = { x: gridSize / 2, y: gridSize / 2 }
     const distance = 5
-    const t0 = performance.now()
-    const { zone, extendedZone } = core.findZone(startPoint, distance, {
-      extension: 4,
-    })
-    const t1 = performance.now()
+    let t0 = performance.now()
+    const { zone = [], extendedZone = [] } = core.findZone(
+      startPoint,
+      distance,
+      { extension: 4 },
+    )
+    let t1 = performance.now()
     console.log(`Calculation ZONE done in ${(t1 - t0).toFixed(2)}ms`)
-    console.log(zone)
+
+    t0 = performance.now()
+    const {
+      zone: coverageZone = [],
+      extendedZone: coverageExtendedZone = [],
+    } = core.findZone(startPoint, gridSize, { extension: 4 })
+    t1 = performance.now()
+    console.log(`Calculation COVERAGE ZONE done in ${(t1 - t0).toFixed(2)}ms`)
+
     const blockedNodes = this.getUnwalkableTiles()
     this.setState({
-      groups: [[startPoint], [], blockedNodes, zone, extendedZone],
+      groups: [
+        [startPoint],
+        [],
+        blockedNodes,
+        zone,
+        extendedZone,
+        coverageZone,
+        coverageExtendedZone,
+      ],
     })
   }
 

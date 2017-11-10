@@ -28,9 +28,15 @@ const Cell = styled.div`
       case 3: // blocked points
         return '#5d5d5d'
       case 4: // zone 1
-        return '#6fa5cc'
+        return '#6ba2d9'
       case 5: // zone 2
-        return '#6ccc51'
+        return '#47d457'
+      case 6: // zone 3
+        return '#537da8'
+      case 7: // zone 3
+        return '#36a243'
+      case 8: // zone 3
+        return '#63ccc3'
       default:
         return '#f4f4f4'
     }

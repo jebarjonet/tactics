@@ -332,7 +332,11 @@ class PathFinder {
   findZone = (
     startPoint: PointType,
     distance: number,
-    { extension = 0 }: { extension?: number },
+    {
+      // extension of found zone (without taking walkability into account)
+      // and return extendedZone points
+      extension = 0,
+    }: { extension?: number, fullCoverage?: boolean },
   ): FindZoneType => {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
@@ -394,10 +398,7 @@ class PathFinder {
     }
 
     if (extension) {
-      result.extendedZone = this.extendZone(
-        hashToArray(instance.nodeHash),
-        extension,
-      )
+      result.extendedZone = this.extendZone(result.zone, extension)
     }
 
     return result
