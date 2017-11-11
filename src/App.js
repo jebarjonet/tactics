@@ -5,7 +5,7 @@ import Core from 'engine/core'
 
 import Grid from './components/Grid'
 
-const gridSize = 20 // must be an even number
+const gridSize = 26 // must be an even number
 
 if (gridSize % 2 !== 0) {
   throw new Error('Grid size must be an even number')
@@ -54,11 +54,12 @@ class App extends Component {
   findZoneExample = () => {
     const startPoint = { x: gridSize / 2, y: gridSize / 2 }
     const distance = 5
+    const extension = 4
     let t0 = performance.now()
     const { zone = [], extendedZone = [] } = core.findZone(
       startPoint,
       distance,
-      { extension: 4 },
+      { extension },
     )
     let t1 = performance.now()
     console.log(`Calculation ZONE done in ${(t1 - t0).toFixed(2)}ms`)
@@ -67,7 +68,7 @@ class App extends Component {
     const {
       zone: coverageZone = [],
       extendedZone: coverageExtendedZone = [],
-    } = core.findZone(startPoint, gridSize, { extension: 4 })
+    } = core.findZone(startPoint, distance * 3, { extension })
     t1 = performance.now()
     console.log(`Calculation COVERAGE ZONE done in ${(t1 - t0).toFixed(2)}ms`)
 

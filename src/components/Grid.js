@@ -93,7 +93,7 @@ class Grid extends Component {
                 )
                 return (
                   <Cell key={cellIndex} groupIndex={groupIndex}>
-                    {!!point && (point.cost || point.distance)}
+                    {!!point && (point.distance || point.cost)}
                   </Cell>
                 )
               })}

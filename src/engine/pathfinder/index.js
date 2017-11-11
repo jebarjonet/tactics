@@ -1,7 +1,7 @@
 // @flow
 
 import Heap from 'heap'
-import { clone, flow, reduce } from 'lodash/fp'
+import { clone } from 'lodash/fp'
 
 import { hashToArray } from '../utils'
 import Instance from './instance'
@@ -28,6 +28,13 @@ export type FindZoneType = {
   extendedZone?: Array<ExtendedZonePointType>,
 }
 
+const adjacentNodesDiffs = [
+  { x: 0, y: 1 },
+  { x: 0, y: -1 },
+  { x: 1, y: 0 },
+  { x: -1, y: 0 },
+]
+
 const CLOSED_LIST = 0
 const OPEN_LIST = 1
 const STRAIGHT_COST = 1
@@ -39,7 +46,7 @@ class PathFinder {
   directionalConditions: {
     [y: number]: { [x: number]: DirectionType },
   }
-  iterationsPerCalculation: number
+  maxIterations: number
   pointsToAvoid: { [y: number]: { [x: number]: 1 } }
   pointsToCost: { [y: number]: { [x: number]: number } }
 
@@ -53,7 +60,7 @@ class PathFinder {
     this.collisionGrid = []
     this.costMap = {}
     this.directionalConditions = {}
-    this.iterationsPerCalculation = Number.MAX_VALUE
+    this.maxIterations = Number.MAX_VALUE
     this.pointsToAvoid = {}
     this.pointsToCost = {}
   }
@@ -187,7 +194,7 @@ class PathFinder {
    * @param {Number} iterations The number of searches to prefrom per calculate() call.
    **/
   setIterationsPerCalculation = (iterations: number): void => {
-    this.iterationsPerCalculation = iterations
+    this.maxIterations = iterations
   }
 
   /**
@@ -286,11 +293,7 @@ class PathFinder {
 
     let path = null
 
-    for (
-      let iterationsSoFar = 0;
-      iterationsSoFar < this.iterationsPerCalculation;
-      iterationsSoFar++
-    ) {
+    for (let i = 0; i < this.maxIterations; i++) {
       // Couldn't find a path.
       if (instance.openList.size() === 0) {
         path = null
@@ -370,11 +373,7 @@ class PathFinder {
       this.coordinateToNode(instance, startPoint, null, STRAIGHT_COST),
     )
 
-    for (
-      let iterationsSoFar = 0;
-      iterationsSoFar < this.iterationsPerCalculation;
-      iterationsSoFar++
-    ) {
+    for (let i = 0; i < this.maxIterations; i++) {
       // couldn't extend zone anymore
       if (instance.openList.size() === 0) {
         break
@@ -398,7 +397,9 @@ class PathFinder {
     }
 
     if (extension) {
-      result.extendedZone = this.extendZone(result.zone, extension)
+      result.extendedZone = hashToArray(
+        this.extendZone(instance.nodeHash, extension),
+      )
     }
 
     return result
@@ -410,46 +411,24 @@ class PathFinder {
    * @param searchNode
    */
   checkAdjacentNodes = (instance: InstanceType, searchNode: NodeType): void => {
-    if (searchNode.y > 0) {
+    adjacentNodesDiffs.forEach(({ x: diffX, y: diffY }) => {
+      const point = {
+        x: searchNode.x + diffX,
+        y: searchNode.y + diffY,
+      }
+
+      if (this.pointIsOutOfGrid(point)) {
+        return
+      }
+
       this.checkAdjacentNode(
         instance,
         searchNode,
-        0,
-        -1,
-        STRAIGHT_COST *
-          this.getTileCost({ x: searchNode.x, y: searchNode.y - 1 }),
+        diffX,
+        diffY,
+        STRAIGHT_COST * this.getTileCost(point),
       )
-    }
-    if (searchNode.x < this.collisionGrid[0].length - 1) {
-      this.checkAdjacentNode(
-        instance,
-        searchNode,
-        1,
-        0,
-        STRAIGHT_COST *
-          this.getTileCost({ x: searchNode.x + 1, y: searchNode.y }),
-      )
-    }
-    if (searchNode.y < this.collisionGrid.length - 1) {
-      this.checkAdjacentNode(
-        instance,
-        searchNode,
-        0,
-        1,
-        STRAIGHT_COST *
-          this.getTileCost({ x: searchNode.x, y: searchNode.y + 1 }),
-      )
-    }
-    if (searchNode.x > 0) {
-      this.checkAdjacentNode(
-        instance,
-        searchNode,
-        -1,
-        0,
-        STRAIGHT_COST *
-          this.getTileCost({ x: searchNode.x - 1, y: searchNode.y }),
-      )
-    }
+    })
   }
 
   /**
@@ -617,57 +596,44 @@ class PathFinder {
    * @returns {*}
    */
   extendZone = (
-    zone: Array<NodeType> | Array<PointType>,
+    zone: { [y: number]: { [x: number]: Object } },
     distance: number,
-  ): Array<ExtendedZonePointType> => {
-    return flow([
-      reduce((result, { x, y }: PointType): {
-        [y: number]: { [x: number]: ExtendedZonePointType },
-      } => {
-        for (let diffY = -distance; diffY <= distance; diffY++) {
-          if (!result[y + diffY]) {
-            result[y + diffY] = {}
+  ): { [y: number]: { [x: number]: ExtendedZonePointType } } => {
+    for (let i = 0; i < distance; i++) {
+      const group = hashToArray(zone)
+
+      group.forEach(node => {
+        const { x, y, distance, parent }: Object = node
+        zone[y][x] = { x, y, distance, parent }
+
+        adjacentNodesDiffs.forEach(({ x: diffX, y: diffY }) => {
+          const point: ExtendedZonePointType = {
+            distance: i + 1,
+            x: x + diffX,
+            y: y + diffY,
+            parent: node,
           }
 
-          for (let diffX = -distance; diffX <= distance; diffX++) {
-            const point: ExtendedZonePointType = {
-              distance: 0,
-              x: x + diffX,
-              y: y + diffY,
-              parent: { x, y },
-            }
-
-            // give up if point is out of grid
-            if (this.pointIsOutOfGrid(point)) {
-              continue
-            }
-
-            const distanceFromSource = this.getDistance({ x, y }, point)
-
-            // give up if point is too far from source
-            if (distanceFromSource > distance) {
-              continue
-            }
-
-            point.distance = distanceFromSource
-
-            // set point in hash if empty at its coordinates
-            if (!result[point.y][point.x]) {
-              result[point.y][point.x] = point
-              continue
-            }
-
-            // update point in hash if less far from initial zone than already
-            // present point
-            if (point.distance < result[point.y][point.x].distance) {
-              result[point.y][point.x] = point
-            }
+          // give up if point is out of grid
+          if (this.pointIsOutOfGrid(point)) {
+            return
           }
-        }
-        return result
-      }, {}),
-      hashToArray,
-    ])(zone)
+
+          if (!zone[point.y]) {
+            zone[point.y] = {}
+          }
+
+          // give up if already point at this coordinate
+          if (zone[point.y][point.x]) {
+            return
+          }
+
+          zone[point.y][point.x] = point
+        })
+      })
+    }
+
+    return zone
   }
 
   /**
