@@ -68,7 +68,6 @@ class App extends Component {
     let t0 = performance.now()
     const teams = state.getTeams()
     const players = state.getPlayers()
-    console.log('players', players)
     const currentPlayer = players[0]
     const otherPlayers = players.slice(1)
     const { zone: currentPlayerMoveZone } = core.terrainAnalyser.findZone(
@@ -90,6 +89,7 @@ class App extends Component {
     )
     let t1 = performance.now()
     console.log(`Calculation done in ${(t1 - t0).toFixed(2)}ms`)
+    console.log('players', players)
 
     this.setState({
       groups: [

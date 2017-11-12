@@ -3,7 +3,7 @@
 import Heap from 'heap'
 import { clone } from 'lodash/fp'
 
-import { hashToArray } from '../../utils'
+import { hashToArray } from 'engine/utils'
 import Instance from './Instance'
 import Node from './Node'
 import type {

@@ -1,7 +1,7 @@
 // @flow
 
-import PathFinder from 'engine/analysis/PathFinder'
-import type { FindPathType, FindZoneType } from 'engine/analysis/PathFinder'
+import PathFinder from './PathFinder'
+import type { FindPathType, FindZoneType } from './PathFinder'
 import { hashToArray } from 'engine/utils'
 import type { Grid as GridType, Point as PointType } from 'engine/types'
 
