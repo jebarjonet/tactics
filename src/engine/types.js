@@ -17,4 +17,4 @@ export type Node = Point & {
 }
 
 // player action
-export type PlayerAction = {}
+export type Action = {}

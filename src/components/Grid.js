@@ -25,18 +25,18 @@ const Cell = styled.div`
         return '#cc9b4d'
       case 2: // path
         return '#cc5e75'
-      case 3: // blocked points
+      case 3: // unwalkable points
         return '#5d5d5d'
-      case 4: // zone 1
+      case 4: // intersections
+        return '#833ccc'
+      case 5: // zone 1
         return '#6ba2d9'
-      case 5: // zone 2
+      case 6: // zone 2
         return '#47d457'
-      case 6: // zone 3
+      case 7: // zone 4
         return '#537da8'
-      case 7: // zone 3
+      case 8: // zone 5
         return '#36a243'
-      case 8: // zone 3
-        return '#63ccc3'
       default:
         return '#f4f4f4'
     }

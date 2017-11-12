@@ -28,8 +28,8 @@ class Core {
     for (let y = 0; y < size; y++) {
       grid[y] = []
       for (let x = 0; x < size; x++) {
-        // set a random value in cell: 3 chances out of 4 to be walkable
-        grid[y][x] = sample([0, 0, 0, 1])
+        // set a random value in cell
+        grid[y][x] = sample([0, 0, 0, 0, 0, 0, 0, 1])
       }
     }
 
