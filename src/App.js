@@ -1,11 +1,9 @@
 import React, { Component } from 'react'
-import _ from 'lodash/fp'
 
-import Core from 'engine/core'
+import Core from 'engine/Core'
+import Grid from 'components/Grid'
 
-import Grid from './components/Grid'
-
-const gridSize = 26 // must be an even number
+const gridSize = 20 // must be an even number
 
 if (gridSize % 2 !== 0) {
   throw new Error('Grid size must be an even number')
@@ -21,30 +19,21 @@ class App extends Component {
     this.findZoneExample()
   }
 
-  getUnwalkableTiles = () => {
-    return _.flattenDeep(
-      core.grid.map((row, y) =>
-        row.map((cell, x) => ({
-          value: cell,
-          x,
-          y,
-        })),
-      ),
-    ).filter(node => node.value === 1)
-  }
-
   findPathExample = () => {
     const startPoint = { x: 0, y: 0 }
     const endPoint = { x: gridSize - 1, y: gridSize - 1 }
     const t0 = performance.now()
-    const { path, searchZone } = core.findPath(startPoint, endPoint)
+    const { path, searchZone } = core.terrainAnalyser.findPath(
+      startPoint,
+      endPoint,
+    )
     const t1 = performance.now()
     console.log(`Calculation PATH done in ${(t1 - t0).toFixed(2)}ms`)
     if (!path) {
       console.log('Path was not found.')
     } else {
       console.log('Path was found')
-      const blockedNodes = this.getUnwalkableTiles()
+      const blockedNodes = core.getUnwalkableZone()
       this.setState({
         groups: [[startPoint, endPoint], path, blockedNodes, searchZone],
       })
@@ -52,36 +41,34 @@ class App extends Component {
   }
 
   findZoneExample = () => {
-    const startPoint = { x: gridSize / 2, y: gridSize / 2 }
-    const distance = 5
-    const extension = 4
+    const startPoint = { x: 12, y: 13 }
+    const startPoint2 = { x: 6, y: 8 }
+    const startPoint3 = { x: 15, y: 5 }
     let t0 = performance.now()
-    const { zone = [], extendedZone = [] } = core.findZone(
-      startPoint,
-      distance,
-      { extension },
-    )
+    const { zone = [] } = core.terrainAnalyser.findZone(startPoint, 3)
     let t1 = performance.now()
     console.log(`Calculation ZONE done in ${(t1 - t0).toFixed(2)}ms`)
 
     t0 = performance.now()
-    const {
-      zone: coverageZone = [],
-      extendedZone: coverageExtendedZone = [],
-    } = core.findZone(startPoint, distance * 3, { extension })
+    const zone2 = core.terrainAnalyser.coverZone(startPoint2, 5)
     t1 = performance.now()
-    console.log(`Calculation COVERAGE ZONE done in ${(t1 - t0).toFixed(2)}ms`)
+    console.log(`Calculation ZONE 2 done in ${(t1 - t0).toFixed(2)}ms`)
 
-    const blockedNodes = this.getUnwalkableTiles()
+    t0 = performance.now()
+    const zone3 = core.terrainAnalyser.coverZone(startPoint3, 5)
+    t1 = performance.now()
+    console.log(`Calculation ZONE COVER done in ${(t1 - t0).toFixed(2)}ms`)
+
+    const blockedNodes = core.getUnwalkableZone()
     this.setState({
       groups: [
         [startPoint],
-        [],
+        [startPoint2, startPoint3],
         blockedNodes,
         zone,
-        extendedZone,
-        coverageZone,
-        coverageExtendedZone,
+        zone2,
+        [],
+        zone3,
       ],
     })
   }

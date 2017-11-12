@@ -15,3 +15,6 @@ export type Node = Point & {
   parent: ?Node,
   simpleDistanceToTarget: number,
 }
+
+// player action
+export type PlayerAction = {}

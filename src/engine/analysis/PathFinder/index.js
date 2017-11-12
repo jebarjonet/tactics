@@ -3,15 +3,15 @@
 import Heap from 'heap'
 import { clone } from 'lodash/fp'
 
-import { hashToArray } from '../utils'
-import Instance from './instance'
-import Node from './node'
+import { hashToArray } from '../../utils'
+import Instance from './Instance'
+import Node from './Node'
 import type {
   Grid as GridType,
   Point as PointType,
   ExtendedZonePoint as ExtendedZonePointType,
   Node as NodeType,
-} from '../types'
+} from 'engine/types'
 
 // existing directions for nodes search
 type DirectionType = 'TOP' | 'RIGHT' | 'BOTTOM' | 'LEFT'
@@ -339,7 +339,7 @@ class PathFinder {
       // extension of found zone (without taking walkability into account)
       // and return extendedZone points
       extension = 0,
-    }: { extension?: number, fullCoverage?: boolean },
+    }: { extension?: number } = {},
   ): FindZoneType => {
     // No acceptable tiles were set
     if (!this.acceptableTiles) {
@@ -449,14 +449,15 @@ class PathFinder {
     const adjacentCoordinateX = searchNode.x + diffX
     const adjacentCoordinateY = searchNode.y + diffY
 
-    if (
+    const canMoveToTile =
       (!this.pointsToAvoid[adjacentCoordinateY] ||
         !this.pointsToAvoid[adjacentCoordinateY][adjacentCoordinateX]) &&
       this.isTileWalkable(
         { x: adjacentCoordinateX, y: adjacentCoordinateY },
         searchNode,
       )
-    ) {
+
+    if (canMoveToTile) {
       const node = this.coordinateToNode(
         instance,
         {
@@ -628,7 +629,7 @@ class PathFinder {
             return
           }
 
-          zone[point.y][point.x] = point
+          zone[point.y][point.x] = clone(point)
         })
       })
     }

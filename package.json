@@ -2,6 +2,24 @@
   "name": "tactics",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "jest",
+    "lint": "eslint src --fix --quiet",
+    "format": "prettier --write 'src/**/*.{js,css}'",
+    "flow": "flow",
+    "precommit": "lint-staged",
+    "postinstall": "flow-typed install -l .flow-typed"
+  },
+  "lint-staged": {
+    "src/**/*.{js,css}": [
+      "test",
+      "format",
+      "lint",
+      "git add"
+    ]
+  },
   "dependencies": {
     "flow-bin": "0.58.0",
     "heap": "0.2.6",
@@ -15,27 +33,18 @@
     "react-scripts": "1.0.17",
     "styled-components": "2.2.3"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "lint": "eslint src --fix --quiet",
-    "format": "prettier --write 'src/**/*.{js,css}'",
-    "flow": "flow",
-    "precommit": "lint-staged",
-    "postinstall": "flow-typed install -l .flow-typed"
-  },
-  "lint-staged": {
-    "src/**/*.{js,css}": [
-      "format",
-      "lint",
-      "git add"
-    ]
-  },
   "devDependencies": {
     "eslint-config-prettier": "2.7.0",
     "eslint-plugin-flowtype": "2.39.1",
     "eslint-plugin-prettier": "2.3.1",
     "flow-typed": "2.2.3",
+    "jest": "21.2.1",
     "prettier": "1.8.1"
+  },
+  "jest": {
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ]
   }
 }

@@ -1,6 +1,6 @@
 // @flow
 
-import type { Node as NodeType } from '../types'
+import type { Node as NodeType } from 'engine/types'
 
 /**
  * A simple Node that represents a single tile on the grid.
@@ -24,11 +24,11 @@ class Node {
     cost: number,
     simpleDistanceToTarget: number,
   ) {
+    this.cost = cost
     this.parent = parent
+    this.simpleDistanceToTarget = simpleDistanceToTarget
     this.x = x
     this.y = y
-    this.cost = cost
-    this.simpleDistanceToTarget = simpleDistanceToTarget
   }
 
   /**
@@ -39,4 +39,4 @@ class Node {
   }
 }
 
-module.exports = Node
+export default Node
