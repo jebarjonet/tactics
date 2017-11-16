@@ -4,19 +4,18 @@ import PathFinder from './PathFinder'
 import type { FindPathType, FindZoneType } from './PathFinder'
 import { hashToArray } from 'engine/utils'
 import type { Grid as GridType, Point as PointType } from 'engine/types'
+import type TerrainType from 'engine/game/Terrain'
 
 class TerrainAnalyser {
-  grid: GridType
   pathFinder: Object
 
-  constructor(grid: GridType) {
+  constructor(terrain: TerrainType) {
     this.pathFinder = new PathFinder()
     this.pathFinder.setAcceptableTiles([0])
-    this.setGrid(grid)
+    this.setGrid(terrain.getWalklableMap().getGrid())
   }
 
   setGrid = (grid: GridType) => {
-    this.grid = grid
     this.pathFinder.setGrid(grid)
   }
 
@@ -61,11 +60,18 @@ class TerrainAnalyser {
    * @param distance
    * @returns {Array.<T>}
    */
-  coverZone = (startPoint: PointType, distance: number) => {
+  coverZone = (
+    startPoint: PointType,
+    distance: number,
+  ): { [y: number]: { [x: number]: PointType } } => {
     const zone = {}
 
     for (let diffY = -distance; diffY <= distance; diffY++) {
       let y = startPoint.y + diffY
+
+      if (this.pathFinder.pointIsOutOfGrid({ x: 0, y })) {
+        continue
+      }
 
       if (!zone[y]) {
         zone[y] = {}
@@ -80,7 +86,7 @@ class TerrainAnalyser {
           continue
         }
 
-        const point = { x, y, distance: distanceSoFar }
+        const point = { x, y, cost: distanceSoFar }
 
         // give up if start point is out of grid
         if (this.pathFinder.pointIsOutOfGrid(point)) {
@@ -91,7 +97,7 @@ class TerrainAnalyser {
       }
     }
 
-    return hashToArray(zone)
+    return zone
   }
 }
 

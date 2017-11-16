@@ -13,10 +13,12 @@ class GameState {
   core: CoreType
   teams: Array<TeamType>
 
-  constructor(core: Object, teams: number = 2, playersPerTeam: number = 2) {
+  constructor(core: CoreType, teams: number = 2, playersPerTeam: number = 2) {
     this.core = core
     this.teams = this.createTeams(teams, playersPerTeam)
   }
+
+  getCore = (): CoreType => this.core
 
   getTeams = (): Array<TeamType> => this.teams
   createTeams = (
@@ -27,7 +29,10 @@ class GameState {
   }
   createTeam = (playersPerTeam: number = 0): TeamType => {
     const team = new Team()
-    const grid = this.core.getGrid()
+    const grid = this.core
+      .getTerrain()
+      .getWalklableMap()
+      .getGrid()
 
     const height = grid.length
 
@@ -43,7 +48,7 @@ class GameState {
 
     // add players to team
     times(() => {
-      const player = this.createPlayer(width, height)
+      const player = this.createPlayer(width - 1, height - 1)
       team.addPlayer(player)
     }, playersPerTeam)
 
@@ -52,12 +57,12 @@ class GameState {
 
   getPlayers = (): Array<PlayerType> =>
     flattenDeep(this.getTeams().map(team => team.getPlayers()))
-  createPlayer = (width: number, height: number): PlayerType => {
+  createPlayer = (maxX: number, maxY: number): PlayerType => {
     const actions = times(this.createAction, random(1, 3))
     return new Player(
       {
-        x: random(0, width - 1),
-        y: random(0, height - 1),
+        x: random(0, maxX),
+        y: random(0, maxY),
       },
       random(3, 5),
       random(1, 2),

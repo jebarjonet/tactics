@@ -67,6 +67,8 @@ class Player {
 
   getTeam = () => this.team
   setTeam = (team: TeamType) => (this.team = team)
+  hasSameTeamAs = (player: Player): boolean =>
+    this.getTeam() === player.getTeam()
 
   getWalk = () => this.walk
   setWalk = (walk: number) => (this.walk = walk)

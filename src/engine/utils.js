@@ -15,6 +15,26 @@ export const hashToArray = <T>(nodeHash: {
 }
 
 /**
+ * Convert value from a start range to another one
+ * @param value
+ * @param startRange
+ * @param endRange
+ * @returns {number}
+ */
+export const convertRange = (
+  value: number,
+  startRange: Array<number>,
+  endRange: Array<number>,
+): number => {
+  return (
+    (value - startRange[0]) *
+      (endRange[1] - endRange[0]) /
+      (startRange[1] - startRange[0]) +
+    endRange[0]
+  )
+}
+
+/**
  * Returns true if passed points are at same position
  * @param point1
  * @param point2

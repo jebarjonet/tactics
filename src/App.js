@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import { flattenDeep, intersectionWith } from 'lodash/fp'
 
-import { areSamePoint } from 'engine/utils'
+import { areSamePoint, hashToArray } from 'engine/utils'
 import Core from 'engine/Core'
 import Grid from 'components/Grid'
 
-const gridSize = 20 // must be an even number
+const gridSize = 28 // must be an even number
 
 if (gridSize % 2 !== 0) {
   throw new Error('Grid size must be an even number')
@@ -26,17 +26,16 @@ class App extends Component {
     const startPoint = { x: 0, y: 0 }
     const endPoint = { x: gridSize - 1, y: gridSize - 1 }
     const t0 = performance.now()
-    const { path, searchZone } = core.terrainAnalyser.findPath(
-      startPoint,
-      endPoint,
-    )
+    const { path, searchZone } = core
+      .getAnalyser()
+      .findPath(startPoint, endPoint)
     const t1 = performance.now()
     console.log(`Calculation PATH done in ${(t1 - t0).toFixed(2)}ms`)
     if (!path) {
       console.log('Path was not found.')
     } else {
       console.log('Path was found')
-      const blockedNodes = core.getUnwalkableZone()
+      const blockedNodes = core.getTerrain().getUnwalkableZone()
       this.setState({
         groups: [[startPoint, endPoint], path, blockedNodes, searchZone],
       })
@@ -48,16 +47,16 @@ class App extends Component {
     const startPoint2 = { x: 6, y: 8 }
 
     let t0 = performance.now()
-    const { zone = [] } = core.terrainAnalyser.findZone(startPoint, 3)
+    const { zone = [] } = core.getAnalyser().findZone(startPoint, 3)
     let t1 = performance.now()
     console.log(`Calculation ZONE done in ${(t1 - t0).toFixed(2)}ms`)
 
     t0 = performance.now()
-    const zone2 = core.terrainAnalyser.coverZone(startPoint2, 5)
+    const zone2 = core.getAnalyser().coverZone(startPoint2, 5)
     t1 = performance.now()
     console.log(`Calculation ZONE 2 done in ${(t1 - t0).toFixed(2)}ms`)
 
-    const blockedNodes = core.getUnwalkableZone()
+    const blockedNodes = core.getTerrain().getUnwalkableZone()
     this.setState({
       groups: [[startPoint], [startPoint2], blockedNodes, zone, zone2],
     })
@@ -70,15 +69,18 @@ class App extends Component {
     const players = state.getPlayers()
     const currentPlayer = players[0]
     const otherPlayers = players.slice(1)
-    const { zone: currentPlayerMoveZone } = core.terrainAnalyser.findZone(
-      currentPlayer.getPosition(),
-      currentPlayer.getWalk(),
+    const currentPlayerMoveZone = hashToArray(
+      core.getAnalyser().findZone(currentPlayer.getPosition(), 99999).zone,
     )
     const currentPlayerActionsZone = flattenDeep(
       otherPlayers.map(player =>
-        core.terrainAnalyser.coverZone(
-          player.getPosition(),
-          currentPlayer.getMaxActionDistance(),
+        hashToArray(
+          core
+            .getAnalyser()
+            .coverZone(
+              player.getPosition(),
+              currentPlayer.getMaxActionDistance(),
+            ),
         ),
       ),
     )
@@ -95,7 +97,7 @@ class App extends Component {
       groups: [
         teams[0].getPlayers().map(player => player.getPosition()),
         teams[1].getPlayers().map(player => player.getPosition()),
-        core.getUnwalkableZone(),
+        core.getTerrain().getUnwalkableZone(),
         intersectionsZone,
         currentPlayerMoveZone,
         currentPlayerActionsZone,

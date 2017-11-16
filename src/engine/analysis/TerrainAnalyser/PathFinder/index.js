@@ -20,12 +20,12 @@ type InstanceType = Object
 // result of path finding
 export type FindPathType = {
   path: ?Array<NodeType>,
-  searchZone?: Array<NodeType>,
+  searchZone?: { [y: number]: { [x: number]: NodeType } },
 }
 // result of zone finding
 export type FindZoneType = {
-  zone: Array<NodeType>,
-  extendedZone?: Array<ExtendedZonePointType>,
+  zone: { [y: number]: { [x: number]: NodeType } },
+  extendedZone?: { [y: number]: { [x: number]: ExtendedZonePointType } },
 }
 
 const adjacentNodesDiffs = [
@@ -320,17 +320,15 @@ class PathFinder {
       this.checkAdjacentNodes(instance, searchNode)
     }
 
-    return { path, searchZone: hashToArray(instance.nodeHash), instance }
+    return { path, searchZone: instance.nodeHash, instance }
   }
 
   /**
    * Find a zone.
-   *
    * @param {Object} startPoint The position of the starting point.
    * @param {Object} distance The distance travelled by finder
    * @param {Object} options Zone finder options
    * @return {Object}
-   *
    **/
   findZone = (
     startPoint: PointType,
@@ -393,13 +391,11 @@ class PathFinder {
 
     const result: FindZoneType = {
       instance,
-      zone: hashToArray(instance.nodeHash),
+      zone: instance.nodeHash,
     }
 
     if (extension) {
-      result.extendedZone = hashToArray(
-        this.extendZone(instance.nodeHash, extension),
-      )
+      result.extendedZone = this.extendZone(instance.nodeHash, extension)
     }
 
     return result
