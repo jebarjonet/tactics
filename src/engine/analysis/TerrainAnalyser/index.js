@@ -1,19 +1,24 @@
 // @flow
 
 import PathFinder from './PathFinder'
-import type { FindPathType, FindZoneType } from './PathFinder'
-import { hashToArray } from 'engine/utils'
-import type { Grid as GridType, Point as PointType } from 'engine/types'
+import type PathFinderType, { FindPathType, FindZoneType } from './PathFinder'
+import type {
+  Grid as GridType,
+  Point as PointType,
+  Node as NodeType,
+} from 'engine/types'
 import type TerrainType from 'engine/game/Terrain'
 
 class TerrainAnalyser {
-  pathFinder: Object
+  pathFinder: PathFinderType
 
   constructor(terrain: TerrainType) {
     this.pathFinder = new PathFinder()
     this.pathFinder.setAcceptableTiles([0])
     this.setGrid(terrain.getWalklableMap().getGrid())
   }
+
+  getPathFinder = (): PathFinderType => this.pathFinder
 
   setGrid = (grid: GridType) => {
     this.pathFinder.setGrid(grid)
@@ -63,7 +68,9 @@ class TerrainAnalyser {
   coverZone = (
     startPoint: PointType,
     distance: number,
-  ): { [y: number]: { [x: number]: PointType } } => {
+  ): {
+    [y: number]: { [x: number]: NodeType },
+  } => {
     const zone = {}
 
     for (let diffY = -distance; diffY <= distance; diffY++) {

@@ -21,21 +21,23 @@ const Cell = styled.div`
   justify-content: center;
   background-color: ${({ groupIndex }) => {
     switch (groupIndex) {
-      case 1: // main points
-        return '#cc9b4d'
-      case 2: // path
+      case 0: // current player
+        return '#df8a00'
+      case 1: // allies
+        return '#ccba71'
+      case 2: // enemies
         return '#cc5e75'
       case 3: // unwalkable points
         return '#5d5d5d'
-      case 4: // intersections
+      case 4: // zone
         return '#833ccc'
-      case 5: // zone 1
+      case 5: // zone
         return '#6ba2d9'
-      case 6: // zone 2
+      case 6: // zone
         return '#47d457'
-      case 7: // zone 4
+      case 7: // zone
         return '#537da8'
-      case 8: // zone 5
+      case 8: // zone
         return '#36a243'
       default:
         return '#f4f4f4'
@@ -58,7 +60,7 @@ class Grid extends Component {
     const { groups } = this.props
 
     let config = {
-      groupIndex: 0,
+      groupIndex: -1,
     }
 
     groups.some((group, index) => {
@@ -69,7 +71,7 @@ class Grid extends Component {
       }
 
       config = {
-        groupIndex: index + 1,
+        groupIndex: index,
         point,
       }
       return true
@@ -92,8 +94,12 @@ class Grid extends Component {
                   rowIndex,
                 )
                 return (
-                  <Cell key={cellIndex} groupIndex={groupIndex}>
-                    {!!point && (point.distance || point.cost)}
+                  <Cell
+                    key={cellIndex}
+                    groupIndex={groupIndex}
+                    title={`(x:${cellIndex} y: ${rowIndex})`}
+                  >
+                    {!!point && (point.score || point.cost)}
                   </Cell>
                 )
               })}

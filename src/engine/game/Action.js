@@ -23,16 +23,16 @@ class Action {
     this.zone = zone
   }
 
-  getDistance = () => this.distance
+  getDistance = (): number => this.distance
   setDistance = (distance: number) => (this.distance = distance)
 
-  getPower = () => this.power
+  getPower = (): number => this.power
   setPower = (power: number) => (this.power = power)
 
-  getVariation = () => this.variation
+  getVariation = (): number => this.variation
   setVariation = (variation: number) => (this.variation = variation)
 
-  getZone = () => this.zone
+  getZone = (): number => this.zone
   setZone = (zone: number) => (this.zone = zone)
 }
 

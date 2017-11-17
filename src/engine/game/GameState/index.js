@@ -58,7 +58,7 @@ class GameState {
   getPlayers = (): Array<PlayerType> =>
     flattenDeep(this.getTeams().map(team => team.getPlayers()))
   createPlayer = (maxX: number, maxY: number): PlayerType => {
-    const actions = times(this.createAction, random(1, 3))
+    const actions = times(this.createAction, random(2, 3))
     return new Player(
       {
         x: random(0, maxX),
@@ -74,7 +74,7 @@ class GameState {
     const distance = sample([1, 1, 2, 3, 4])
     return new Action({
       distance,
-      power: random(3, 8),
+      power: 4 - distance + random(1, 3),
       zone: distance > 1 ? sample([0, 0, 0, 1, 2]) : 0,
     })
   }
