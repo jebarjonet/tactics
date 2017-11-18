@@ -1,12 +1,12 @@
 // @flow
 
 import { forEach } from 'lodash/fp'
-import { convertRange } from 'engine/utils'
-import type { Grid as GridType, Point as PointType } from 'engine/types'
-import type CoreType from 'engine/Core'
-import Map from 'engine/game/Map'
-import MapType from 'engine/game/Map'
-import PlayerType from 'engine/game/Player'
+import { convertRange } from 'game/utils'
+import type { Grid as GridType, Point as PointType } from 'game/types'
+import type CoreType from 'game/Core'
+import Map from 'game/engine/Map'
+import MapType from 'game/engine/Map'
+import PlayerType from 'game/engine/Player'
 
 class MapsAnalyser {
   core: CoreType

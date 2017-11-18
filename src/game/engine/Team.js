@@ -1,6 +1,6 @@
 // @flow
 
-import type PlayerType from 'engine/game/Player'
+import type PlayerType from 'game/engine/Player'
 
 class Team {
   players: Array<PlayerType> = []
@@ -10,6 +10,9 @@ class Team {
   addPlayer = (player: PlayerType): void => {
     player.setTeam(this)
     this.players.push(player)
+  }
+  removePlayer = (player: PlayerType) => {
+    this.setPlayers(this.players.filter(p => p !== player))
   }
 }
 

@@ -6,8 +6,8 @@ import type {
   Grid as GridType,
   Point as PointType,
   Node as NodeType,
-} from 'engine/types'
-import type TerrainType from 'engine/game/Terrain'
+} from 'game/types'
+import type TerrainType from 'game/engine/Terrain'
 
 class TerrainAnalyser {
   pathFinder: PathFinderType

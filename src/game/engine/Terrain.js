@@ -2,9 +2,9 @@
 
 import { sample, flow, flattenDeep, filter } from 'lodash/fp'
 
-import type { Grid as GridType, Point as PointType } from 'engine/types'
-import Map from 'engine/game/Map'
-import type MapType from 'engine/game/Map'
+import type { Grid as GridType, Point as PointType } from 'game/types'
+import Map from 'game/engine/Map'
+import type MapType from 'game/engine/Map'
 
 class Terrain {
   costMap: MapType // walk cost (0 to INFINITY)

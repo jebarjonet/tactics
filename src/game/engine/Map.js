@@ -1,6 +1,6 @@
 // @flow
 
-import type { Grid as GridType } from 'engine/types'
+import type { Grid as GridType } from 'game/types'
 
 class Map {
   grid: GridType

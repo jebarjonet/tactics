@@ -2,16 +2,17 @@
 
 import { intersectionWith, maxBy } from 'lodash/fp'
 
-import type CoreType from 'engine/Core'
-import type PlayerType from 'engine/game/Player'
-import type ActionType from 'engine/game/Action'
-import type { Point as PointType, Node as NodeType } from 'engine/types'
-import { areSamePoint, hashToArray } from 'engine/utils'
+import type CoreType from 'game/Core'
+import type PlayerType from 'game/engine/Player'
+import type ActionType from 'game/engine/Action'
+import type { Point as PointType, Node as NodeType } from 'game/types'
+import { areSamePoint, hashToArray } from 'game/utils'
 
 const ROUNDS = 10
 
 type AvailableDecisionType = {
   action: ActionType,
+  actionReaches: boolean, // if action reaches target or not
   positions: Array<NodeType>, // positions at which the action can reach target
   round: number,
   score?: number,
@@ -20,6 +21,7 @@ type AvailableDecisionType = {
 
 type SelectedDecisionType = {
   action: ActionType,
+  actionReaches: boolean,
   position: PointType,
   round: number,
   score: number,
@@ -38,17 +40,18 @@ class ActionScorer {
   getCore = (): CoreType => this.core
 
   getPlayer = (): PlayerType => this.player
-  getDecision = (): SelectedDecisionType => {
+  setPlayer = (player: PlayerType) => (this.player = player)
+  getDecision = (): {
+    decision: SelectedDecisionType,
+    moveZone: { [y: number]: { [x: number]: NodeType } },
+  } => {
     const { core, player } = this
 
     const players = core.getGameState().getPlayers()
 
-    const otherPlayers = players
+    let otherPlayers = players
       .filter(p => p !== player)
-      // temporarily target only enemies
-      .filter(p => !player.hasSameTeamAs(p))
-    // console.log('player', player)
-    // console.log('enemies', otherPlayers)
+      .filter(p => p.isAlive())
 
     // add other players as points to avoid for pathfinding
     core
@@ -61,6 +64,9 @@ class ActionScorer {
         .getPathFinder()
         .avoidAdditionalPoint(otherPlayer.getPosition()),
     )
+
+    // temporarily target only enemies
+    otherPlayers = otherPlayers.filter(p => !player.hasSameTeamAs(p))
 
     // player positions for 100 rounds
     const {
@@ -107,7 +113,7 @@ class ActionScorer {
           // nodes where player can reach target for this action
           // node.cost here is action distance (the higher the further from target)
           const positions = intersectionZone.filter(
-            node => node.cost <= action.getDistance(),
+            node => node.cost <= action.reachesAt(),
           )
 
           // if no intersection then player can not reach target with this action
@@ -117,10 +123,11 @@ class ActionScorer {
 
           // can reach target on this round with this action
           decisions.push({
-            positions,
             action,
-            target,
+            actionReaches: round === 1,
+            positions,
             round,
+            target,
           })
         })
       })
@@ -129,7 +136,9 @@ class ActionScorer {
     // score decision action
     // powerful action => better score
     decisions.forEach(decision => {
-      decision.score = decision.action.getPower()
+      decision.score = decision.actionReaches
+        ? Math.abs(decision.action.getDamage())
+        : 0
     })
 
     // score decision position
@@ -148,17 +157,13 @@ class ActionScorer {
       })
     })
 
-    // return decision with best score
-    return maxBy('score')(positionedDecisions)
+    const selectedDecision = maxBy('score')(positionedDecisions)
 
-    // for a player
-    // compute influence map
-    // for X rounds (ponderer chaque action par numero de round)
-    // - filter available positions
-    // - pour chaque cible lister toutes les actions possibles
-    // - scorer chaque action possible (score action)
-    // - scorer chaque position de chaque action possible (score position)
-    // determiner score final et prendre action avec meilleur score
+    // return decision with best score
+    return {
+      decision: selectedDecision,
+      moveZone: maximumPlayerMoveZone,
+    }
   }
 }
 

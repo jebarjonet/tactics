@@ -1,8 +1,7 @@
 import { sortBy } from 'lodash/fp'
 
+import Terrain from 'game/engine/Terrain'
 import TerrainAnalyser from './'
-
-const grid = []
 
 let terrainAnalyser = null
 
@@ -26,14 +25,15 @@ const gridToArray = grid => {
 }
 
 /**
- * Transforms array of nodes/points to points
+ * Transforms array of nodes/points to array of points
  * @param array
  */
 const arrayToPoints = array => array.map(node => ({ x: node.x, y: node.y }))
 
 describe('engine:terrainAnalyser', () => {
   beforeEach(() => {
-    terrainAnalyser = new TerrainAnalyser(grid)
+    const terrain = new Terrain(5)
+    terrainAnalyser = new TerrainAnalyser(terrain)
   })
 
   test('findPath', () => {

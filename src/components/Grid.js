@@ -30,15 +30,15 @@ const Cell = styled.div`
       case 3: // unwalkable points
         return '#5d5d5d'
       case 4: // zone
-        return '#833ccc'
-      case 5: // zone
         return '#6ba2d9'
-      case 6: // zone
+      case 5: // zone
         return '#47d457'
-      case 7: // zone
+      case 6: // zone
         return '#537da8'
-      case 8: // zone
+      case 7: // zone
         return '#36a243'
+      case 8: // zone
+        return '#833ccc'
       default:
         return '#f4f4f4'
     }

@@ -1,13 +1,13 @@
 // @flow
 
 import { times, random, sample, flattenDeep } from 'lodash/fp'
-import type CoreType from 'engine/Core'
-import Team from 'engine/game/Team'
-import type TeamType from 'engine/game/Team'
-import Player from 'engine/game/Player'
-import type PlayerType from 'engine/game/Player'
-import Action from 'engine/game/Action'
-import type ActionType from 'engine/game/Action'
+import type CoreType from 'game/Core'
+import Team from 'game/engine/Team'
+import type TeamType from 'game/engine/Team'
+import Player from 'game/engine/Player'
+import type PlayerType from 'game/engine/Player'
+import Action from 'game/engine/Action'
+import type ActionType from 'game/engine/Action'
 
 class GameState {
   core: CoreType
@@ -69,12 +69,15 @@ class GameState {
       actions,
     )
   }
+  removePlayer = (player: PlayerType) => {
+    player.getTeam().removePlayer(player)
+  }
 
   createAction = (): ActionType => {
     const distance = sample([1, 1, 2, 3, 4])
     return new Action({
       distance,
-      power: 4 - distance + random(1, 3),
+      damage: -(4 - distance + random(1, 3)),
       zone: distance > 1 ? sample([0, 0, 0, 1, 2]) : 0,
     })
   }

@@ -3,7 +3,7 @@
 import Heap from 'heap'
 import { clone } from 'lodash/fp'
 
-import { hashToArray } from 'engine/utils'
+import { hashToArray } from 'game/utils'
 import Instance from './Instance'
 import Node from './Node'
 import type {
@@ -11,7 +11,7 @@ import type {
   Point as PointType,
   ExtendedZonePoint as ExtendedZonePointType,
   Node as NodeType,
-} from 'engine/types'
+} from 'game/types'
 
 // existing directions for nodes search
 type DirectionType = 'TOP' | 'RIGHT' | 'BOTTOM' | 'LEFT'
@@ -304,14 +304,7 @@ class PathFinder {
 
       // Handles the case where we have found the destination
       if (endPoint.x === searchNode.x && endPoint.y === searchNode.y) {
-        path = []
-        path.push(clone(searchNode))
-        let parent = searchNode.parent
-        while (parent) {
-          path.push(clone(parent))
-          parent = parent.parent
-        }
-        path.reverse()
+        path = this.buildPath(searchNode)
         break
       }
 
@@ -583,6 +576,23 @@ class PathFinder {
     const dx = Math.abs(startPoint.x - endPoint.x)
     const dy = Math.abs(startPoint.y - endPoint.y)
     return dx + dy
+  }
+
+  /**
+   * Returns path from an endpoint to its ancestors
+   * @param endPoint
+   * @returns {Array}
+   */
+  buildPath = (endPoint: NodeType): Array<NodeType> => {
+    const path = []
+    path.push(clone(endPoint))
+    let parent = endPoint.parent
+    while (parent) {
+      path.push(clone(parent))
+      parent = parent.parent
+    }
+    path.reverse()
+    return path
   }
 
   /**

@@ -1,7 +1,7 @@
 // @flow
 
 import type Heap from 'heap'
-import type { Point as PointType, Node as NodeType } from 'engine/types'
+import type { Point as PointType, Node as NodeType } from 'game/types'
 
 /**
  * Represents a single instance of pathfinder

@@ -1,9 +1,9 @@
 // @flow
 
 import { flow, map, max, random } from 'lodash/fp'
-import type { Point as PointType } from 'engine/types'
-import type TeamType from 'engine/game/Team'
-import type ActionType from 'engine/game/Action'
+import type { Point as PointType } from 'game/types'
+import type TeamType from 'game/engine/Team'
+import type ActionType from 'game/engine/Action'
 
 class Player {
   actions: Array<ActionType>
@@ -37,9 +37,7 @@ class Player {
       return 0
     }
 
-    return flow([map(action => action.getDistance() + action.getZone()), max])(
-      actions,
-    )
+    return flow([map(action => action.reachesAt()), max])(actions)
   }
   setActions = (actions: Array<ActionType>) => (this.actions = actions)
   addAction = (action: ActionType) => this.actions.push(action)
@@ -58,6 +56,7 @@ class Player {
     }
   }
   addLife = (diff: number) => this.setLife(this.getLife() + diff)
+  isAlive = (): boolean => this.getLife() > 0
 
   getMaxLife = () => this.maxLife
   setMaxLife = (maxLife: number) => (this.maxLife = maxLife)
@@ -73,16 +72,21 @@ class Player {
   getWalk = () => this.walk
   setWalk = (walk: number) => (this.walk = walk)
 
-  // undergo action (decrease/increase plalife)
-  undergoAction = (action: ActionType): void => {
-    const initialPower = action.getPower()
-    // calculate power variation
-    const variation = Math.floor(initialPower * action.getVariation() / 100)
-    // apply power variation
-    const power = Math.floor(
-      random(initialPower - variation, initialPower + variation),
+  // undergo action (decrease/increase player life)
+  undergoAction = (
+    action: ActionType,
+  ): {
+    damage: number, // damage undergone by player
+  } => {
+    const initialDamage = action.getDamage()
+    // calculate damage variation
+    const variation = Math.floor(initialDamage * action.getVariation() / 100)
+    // apply damage variation
+    const damage = Math.floor(
+      random(initialDamage - variation, initialDamage + variation),
     )
-    this.addLife(power)
+    this.addLife(damage)
+    return { damage }
   }
 }
 

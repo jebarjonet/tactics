@@ -1,14 +1,14 @@
 // @flow
 
-import GameState from 'engine/game/GameState'
-import type GameStateType from 'engine/game/GameState'
-import TerrainAnalyser from 'engine/analysis/TerrainAnalyser'
-import type TerrainAnalyserType from 'engine/analysis/TerrainAnalyser'
-import Terrain from 'engine/game/Terrain'
-import type TerrainType from 'engine/game/Terrain'
-import ActionScorer from 'engine/decision/ActionScorer'
-import type ActionScorerType from 'engine/decision/ActionScorer'
-import MapsAnalyser from 'engine/analysis/MapsAnalyser'
+import GameState from 'game/engine/GameState'
+import type GameStateType from 'game/engine/GameState'
+import TerrainAnalyser from 'game/analysis/TerrainAnalyser'
+import type TerrainAnalyserType from 'game/analysis/TerrainAnalyser'
+import Terrain from 'game/engine/Terrain'
+import type TerrainType from 'game/engine/Terrain'
+import ActionScorer from 'game/decision/ActionScorer'
+import type ActionScorerType from 'game/decision/ActionScorer'
+import MapsAnalyser from 'game/analysis/MapsAnalyser'
 
 class Core {
   actionScorer: ActionScorerType

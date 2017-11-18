@@ -2,32 +2,33 @@
 
 class Action {
   distance: number // distance from player
-  power: number // power of action (negative is curing/positive is attacking)
-  variation: number // percent of variation of power
+  damage: number // damage of action (negative is attacking/positive is curing)
+  variation: number // percent of variation of damage
   zone: number // zone effect distance
 
   constructor({
     distance = 1,
-    power = 0,
+    damage = 0,
     variation = 8,
     zone = 0,
   }: {
     distance?: number,
-    power: number,
+    damage: number,
     variation?: number,
     zone?: number,
   }) {
     this.distance = distance
-    this.power = power
+    this.damage = damage
     this.variation = variation
     this.zone = zone
   }
 
   getDistance = (): number => this.distance
   setDistance = (distance: number) => (this.distance = distance)
+  reachesAt = (): number => this.getDistance() + this.getZone()
 
-  getPower = (): number => this.power
-  setPower = (power: number) => (this.power = power)
+  getDamage = (): number => this.damage
+  setDamage = (damage: number) => (this.damage = damage)
 
   getVariation = (): number => this.variation
   setVariation = (variation: number) => (this.variation = variation)

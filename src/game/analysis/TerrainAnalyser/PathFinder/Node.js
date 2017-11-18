@@ -1,6 +1,6 @@
 // @flow
 
-import type { Node as NodeType } from 'engine/types'
+import type { Node as NodeType } from 'game/types'
 
 /**
  * A simple Node that represents a single tile on the grid.
