@@ -19,30 +19,7 @@ const Cell = styled.div`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: ${({ groupIndex }) => {
-    switch (groupIndex) {
-      case 0: // current player
-        return '#df8a00'
-      case 1: // allies
-        return '#ccba71'
-      case 2: // enemies
-        return '#cc5e75'
-      case 3: // unwalkable points
-        return '#5d5d5d'
-      case 4: // zone
-        return '#6ba2d9'
-      case 5: // zone
-        return '#47d457'
-      case 6: // zone
-        return '#537da8'
-      case 7: // zone
-        return '#36a243'
-      case 8: // zone
-        return '#833ccc'
-      default:
-        return '#f4f4f4'
-    }
-  }};
+  background-color: #f4f4f4;
 `
 
 class Grid extends Component {
@@ -63,25 +40,24 @@ class Grid extends Component {
       groupIndex: -1,
     }
 
-    groups.some((group, index) => {
-      const point = group.find(cell => cell.x === x && cell.y === y)
+    groups.every((group, index) => {
+      const point = group.points.find(cell => cell.x === x && cell.y === y)
 
       if (!point) {
-        return false
+        return true
       }
 
       config = {
         groupIndex: index,
         point,
       }
-      return true
     })
 
     return config
   }
 
   render() {
-    const { height, width } = this.props
+    const { groups, height, width } = this.props
 
     return (
       <Board>
@@ -96,8 +72,11 @@ class Grid extends Component {
                 return (
                   <Cell
                     key={cellIndex}
-                    groupIndex={groupIndex}
                     title={`(x:${cellIndex} y: ${rowIndex})`}
+                    style={{
+                      backgroundColor:
+                        groupIndex !== -1 && groups[groupIndex].color,
+                    }}
                   >
                     {!!point && (point.score || point.cost)}
                   </Cell>

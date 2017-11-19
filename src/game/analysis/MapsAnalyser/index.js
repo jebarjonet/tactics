@@ -38,9 +38,9 @@ class MapsAnalyser {
     const grid = this.initializeGrid()
 
     players.forEach(player => {
-      const hasSameTeam = currentPlayer.hasSameTeamAs(player)
+      const isAlly = currentPlayer.isAlly(player)
 
-      if (hasSameTeam) {
+      if (isAlly) {
         return
       }
 

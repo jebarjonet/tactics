@@ -14,7 +14,7 @@ if (gridSize % 2 !== 0) {
 const core = new Core(gridSize)
 
 const SPEED = 100
-const MOVE_SPEED = SPEED / 2
+const MOVE_SPEED = SPEED / 1.5
 
 class App extends Component {
   state = { currentPlayer: core.getGameState().getPlayers()[0], groups: [] }
@@ -25,9 +25,9 @@ class App extends Component {
 
   round = () => {
     setTimeout(() => {
-      const actionScorer = core.getActionScorer()
+      const decisionScorer = core.getDecisionScorer()
 
-      const { decision, moveZone } = actionScorer.getDecision()
+      const { decision, moveZone } = decisionScorer.getDecision()
 
       // zone where player can move for this round
       const roundMoveZone = hashToArray(moveZone).filter(
@@ -35,7 +35,14 @@ class App extends Component {
       )
 
       // display walkable zone for this round
-      this.setState({ groups: [[], roundMoveZone] })
+      this.setState({
+        groups: [
+          {
+            points: roundMoveZone,
+            color: '#6ba2d9',
+          },
+        ],
+      })
 
       const finalPosition = moveZone[decision.position.y][decision.position.x]
       const path = core
@@ -49,7 +56,22 @@ class App extends Component {
 
       setTimeout(() => {
         // display destination zone for this round
-        this.setState({ groups: [[roundDestination], roundMoveZone] })
+        this.setState({
+          groups: [
+            {
+              points: [roundDestination],
+              color: '#106528',
+            },
+            {
+              points: roundPath,
+              color: '#4fcc6c',
+            },
+            {
+              points: roundMoveZone,
+              color: '#6ba2d9',
+            },
+          ],
+        })
 
         // move to destination
         roundPath.forEach((point, index) => {
@@ -60,10 +82,10 @@ class App extends Component {
         })
 
         setTimeout(() => {
-          const { action, actionReaches, target } = decision
+          const { action, reachesTarget, target } = decision
 
-          if (actionReaches) {
-            // attack target
+          if (reachesTarget) {
+            // act on target
             const { damage } = target.undergoAction(action)
             console.log(
               `Target at ${target.getPosition().x}:${
@@ -73,7 +95,7 @@ class App extends Component {
               } (${target.getLife()}/${target.getMaxLife()} left)`,
             )
 
-            if (!target.isAlive()) {
+            if (target.isDead()) {
               console.log('Target dies!')
               core.getGameState().removePlayer(target)
               this.forceUpdate()
@@ -84,12 +106,11 @@ class App extends Component {
             const alivePlayers = core
               .getGameState()
               .getPlayers()
-              .filter(player => player.isAlive())
+              .filter(player => !player.isDead())
 
             if (
-              alivePlayers.filter(
-                p => !this.state.currentPlayer.hasSameTeamAs(p),
-              ).length === 0
+              alivePlayers.filter(p => !this.state.currentPlayer.isAlly(p))
+                .length === 0
             ) {
               return console.log('END of game')
             }
@@ -102,7 +123,7 @@ class App extends Component {
 
             // next player round
             const nextPlayer = alivePlayers[nextPlayerIndex]
-            core.getActionScorer().setPlayer(nextPlayer)
+            core.getDecisionScorer().setPlayer(nextPlayer)
             this.setState({
               currentPlayer: nextPlayer,
               groups: [],
@@ -118,10 +139,26 @@ class App extends Component {
     const teams = core.getGameState().getTeams()
 
     const groups = [
-      [this.state.currentPlayer.getPosition()],
-      teams[0].getPlayers().map(player => player.getPosition()),
-      teams[1].getPlayers().map(player => player.getPosition()),
-      core.getTerrain().getUnwalkableZone(),
+      {
+        points: [this.state.currentPlayer.getPosition()],
+        color: '#df8a00',
+      },
+      {
+        points: teams[0].getPlayers().map(player => player.getPosition()),
+        color: '#ccba71',
+      },
+      {
+        points: teams[1].getPlayers().map(player => player.getPosition()),
+        color: '#cc4342',
+      },
+      // {
+      //   points: teams[2].getPlayers().map(player => player.getPosition()),
+      //   color: '#cc249d',
+      // },
+      {
+        points: core.getTerrain().getUnwalkableZone(),
+        color: '#5d5d5d',
+      },
       ...this.state.groups,
     ]
 

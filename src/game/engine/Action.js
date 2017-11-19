@@ -25,7 +25,8 @@ class Action {
 
   getDistance = (): number => this.distance
   setDistance = (distance: number) => (this.distance = distance)
-  reachesAt = (): number => this.getDistance() + this.getZone()
+  // distance + zone effect
+  getFullDistance = (): number => this.getDistance() + this.getZone()
 
   getDamage = (): number => this.damage
   setDamage = (damage: number) => (this.damage = damage)

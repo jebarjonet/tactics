@@ -6,12 +6,12 @@ import TerrainAnalyser from 'game/analysis/TerrainAnalyser'
 import type TerrainAnalyserType from 'game/analysis/TerrainAnalyser'
 import Terrain from 'game/engine/Terrain'
 import type TerrainType from 'game/engine/Terrain'
-import ActionScorer from 'game/decision/ActionScorer'
-import type ActionScorerType from 'game/decision/ActionScorer'
+import DecisionScorer from 'game/decision/DecisionScorer'
+import type DecisionScorerType from 'game/decision/DecisionScorer'
 import MapsAnalyser from 'game/analysis/MapsAnalyser'
 
 class Core {
-  actionScorer: ActionScorerType
+  decisionScorer: DecisionScorerType
   gameState: GameStateType
   terrain: TerrainType
   terrainAnalyser: TerrainAnalyserType
@@ -24,7 +24,10 @@ class Core {
     // start game state
     this.gameState = new GameState(this, 2, 3)
 
-    this.actionScorer = new ActionScorer(this, this.gameState.getPlayers()[0])
+    this.decisionScorer = new DecisionScorer(
+      this,
+      this.gameState.getPlayers()[0],
+    )
 
     // const mapsAnalyser = new MapsAnalyser(this)
     // console.log(
@@ -32,7 +35,7 @@ class Core {
     // )
   }
 
-  getActionScorer = (): ActionScorerType => this.actionScorer
+  getDecisionScorer = (): DecisionScorerType => this.decisionScorer
   getGameState = (): GameStateType => this.gameState
   getTerrain = (): TerrainType => this.terrain
   getAnalyser = (): TerrainAnalyserType => this.terrainAnalyser

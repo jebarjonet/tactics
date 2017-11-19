@@ -37,7 +37,7 @@ class Player {
       return 0
     }
 
-    return flow([map(action => action.reachesAt()), max])(actions)
+    return flow([map(action => action.getFullDistance()), max])(actions)
   }
   setActions = (actions: Array<ActionType>) => (this.actions = actions)
   addAction = (action: ActionType) => this.actions.push(action)
@@ -56,7 +56,7 @@ class Player {
     }
   }
   addLife = (diff: number) => this.setLife(this.getLife() + diff)
-  isAlive = (): boolean => this.getLife() > 0
+  isDead = (): boolean => this.getLife() <= 0
 
   getMaxLife = () => this.maxLife
   setMaxLife = (maxLife: number) => (this.maxLife = maxLife)
@@ -66,8 +66,7 @@ class Player {
 
   getTeam = () => this.team
   setTeam = (team: TeamType) => (this.team = team)
-  hasSameTeamAs = (player: Player): boolean =>
-    this.getTeam() === player.getTeam()
+  isAlly = (player: Player): boolean => this.getTeam() === player.getTeam()
 
   getWalk = () => this.walk
   setWalk = (walk: number) => (this.walk = walk)

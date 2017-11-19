@@ -5,37 +5,50 @@ import { intersectionWith, maxBy } from 'lodash/fp'
 import type CoreType from 'game/Core'
 import type PlayerType from 'game/engine/Player'
 import type ActionType from 'game/engine/Action'
-import type { Point as PointType, Node as NodeType } from 'game/types'
+import ActionScorer from './ActionScorer'
+import type ActionScorerType from './ActionScorer'
+import PositionScorer from './PositionScorer'
+import type PositionScorerType from './PositionScorer'
+import type { Node as NodeType } from 'game/types'
 import { areSamePoint, hashToArray } from 'game/utils'
 
 const ROUNDS = 10
 
-type AvailableDecisionType = {
+export type AvailableDecisionType = {
   action: ActionType,
-  actionReaches: boolean, // if action reaches target or not
+  actionScore?: number,
   positions: Array<NodeType>, // positions at which the action can reach target
+  positionScore?: number,
+  reachesTarget: boolean, // if action reaches target or not
   round: number,
-  score?: number,
   target: PlayerType,
 }
 
-type SelectedDecisionType = {
+export type SelectedDecisionType = {
   action: ActionType,
-  actionReaches: boolean,
-  position: PointType,
+  actionScore: number,
+  position: NodeType,
+  positionScore: number,
+  reachesTarget: boolean,
   round: number,
   score: number,
   target: PlayerType,
 }
 
-class ActionScorer {
+class DecisionScorer {
+  actionScorer: ActionScorerType
   core: CoreType
   player: PlayerType
+  positionScorer: PositionScorerType
 
   constructor(core: CoreType, player: PlayerType) {
+    this.actionScorer = new ActionScorer(this)
     this.core = core
     this.player = player
+    this.positionScorer = new PositionScorer(this)
   }
+
+  getActionScorer = (): ActionScorerType => this.actionScorer
 
   getCore = (): CoreType => this.core
 
@@ -51,9 +64,9 @@ class ActionScorer {
 
     let otherPlayers = players
       .filter(p => p !== player)
-      .filter(p => p.isAlive())
+      .filter(p => !p.isDead())
 
-    // add other players as points to avoid for pathfinding
+    // add other players as points to avoid for path finding
     core
       .getAnalyser()
       .getPathFinder()
@@ -64,9 +77,6 @@ class ActionScorer {
         .getPathFinder()
         .avoidAdditionalPoint(otherPlayer.getPosition()),
     )
-
-    // temporarily target only enemies
-    otherPlayers = otherPlayers.filter(p => !player.hasSameTeamAs(p))
 
     // player positions for 100 rounds
     const {
@@ -113,7 +123,7 @@ class ActionScorer {
           // nodes where player can reach target for this action
           // node.cost here is action distance (the higher the further from target)
           const positions = intersectionZone.filter(
-            node => node.cost <= action.reachesAt(),
+            node => node.cost <= action.getFullDistance(),
           )
 
           // if no intersection then player can not reach target with this action
@@ -124,7 +134,7 @@ class ActionScorer {
           // can reach target on this round with this action
           decisions.push({
             action,
-            actionReaches: round === 1,
+            reachesTarget: round === 1,
             positions,
             round,
             target,
@@ -136,23 +146,22 @@ class ActionScorer {
     // score decision action
     // powerful action => better score
     decisions.forEach(decision => {
-      decision.score = decision.actionReaches
-        ? Math.abs(decision.action.getDamage())
-        : 0
+      decision.actionScore = this.scoreAction(decision)
     })
 
     // score decision position
     const positionedDecisions: Array<SelectedDecisionType> = []
-    decisions.forEach(({ positions, ...decision }) => {
+    decisions.forEach(decision => {
+      const { positions, ...rest } = decision
       positions.forEach(position => {
-        // node.cost here is action distance (the higher the further from target)
-        // further from target => better score
-        const score = Number(decision.score) + position.cost
-        positionedDecisions.push({
-          ...decision,
+        const positionedDecision = {
+          ...rest,
           position,
-          // high round => less score
-          score: Number((score * (1 / decision.round)).toFixed(3)),
+          positionScore: this.scorePosition(decision, position),
+        }
+        positionedDecisions.push({
+          ...positionedDecision,
+          score: this.score(positionedDecision),
         })
       })
     })
@@ -162,10 +171,10 @@ class ActionScorer {
     // if selected decision can not reach this round
     // find another decision that reaches but is at same position as this one
     // so it keeps the intent of movement to another target but it actually acts this round
-    if (!selectedDecision.actionReaches) {
+    if (!selectedDecision.reachesTarget) {
       const reachingDecisions = positionedDecisions.filter(
         decision =>
-          decision.actionReaches &&
+          decision.reachesTarget &&
           decision.position.x === selectedDecision.position.x &&
           decision.position.y === selectedDecision.position.y,
       )
@@ -175,12 +184,30 @@ class ActionScorer {
       }
     }
 
+    // don't act if action score <= 0 (action is not wanted, better do nothing)
+    if (selectedDecision.actionScore <= 0) {
+      selectedDecision.reachesTarget = false
+    }
+
     // return decision with best score
     return {
       decision: selectedDecision,
       moveZone: maximumPlayerMoveZone,
     }
   }
+  scoreAction = (decision: AvailableDecisionType): number =>
+    this.getActionScorer().score(decision)
+  scorePosition = (
+    decision: AvailableDecisionType,
+    position: NodeType,
+  ): number => this.getPositionScorer().score(decision, position)
+  score = (decision: Object): number => {
+    const score = decision.actionScore * decision.positionScore
+    // high round => less score
+    return Number((score * (1 / decision.round)).toFixed(3))
+  }
+
+  getPositionScorer = (): PositionScorerType => this.positionScorer
 }
 
-export default ActionScorer
+export default DecisionScorer
