@@ -96,7 +96,7 @@ class ActionScorer {
             .coverZone(target.getPosition(), playerMaxActionDistance),
         )
 
-        // cost of nodes in intersectionZone is distance from target from this node
+        // cost of nodes in intersectionZone is distance to target from this node
         const intersectionZone = intersectionWith(
           areSamePoint,
           maxActionDistanceZone,
@@ -157,7 +157,23 @@ class ActionScorer {
       })
     })
 
-    const selectedDecision = maxBy('score')(positionedDecisions)
+    let selectedDecision = maxBy('score')(positionedDecisions)
+
+    // if selected decision can not reach this round
+    // find another decision that reaches but is at same position as this one
+    // so it keeps the intent of movement to another target but it actually acts this round
+    if (!selectedDecision.actionReaches) {
+      const reachingDecisions = positionedDecisions.filter(
+        decision =>
+          decision.actionReaches &&
+          decision.position.x === selectedDecision.position.x &&
+          decision.position.y === selectedDecision.position.y,
+      )
+
+      if (reachingDecisions.length > 0) {
+        selectedDecision = maxBy('score')(reachingDecisions)
+      }
+    }
 
     // return decision with best score
     return {
