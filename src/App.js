@@ -13,11 +13,15 @@ if (gridSize % 2 !== 0) {
 
 const core = new Core(gridSize)
 
-const SPEED = 100
+const SPEED = 200
 const MOVE_SPEED = SPEED / 1.5
 
 class App extends Component {
-  state = { currentPlayer: core.getGameState().getPlayers()[0], groups: [] }
+  state = {
+    currentPlayer: core.getGameState().getPlayers()[0],
+    groups: [],
+    preGroups: [],
+  }
 
   componentDidMount() {
     this.round()
@@ -36,6 +40,12 @@ class App extends Component {
 
       // display walkable zone for this round
       this.setState({
+        preGroups: [
+          {
+            points: [decision.target.getPosition()],
+            color: '#9300d9',
+          },
+        ],
         groups: [
           {
             points: roundMoveZone,
@@ -86,7 +96,7 @@ class App extends Component {
 
           if (reachesTarget) {
             // act on target
-            const { damage } = target.undergoAction(action)
+            const { damage } = target.applyAction(action)
             console.log(
               `Target at ${target.getPosition().x}:${
                 target.getPosition().y
@@ -139,6 +149,7 @@ class App extends Component {
     const teams = core.getGameState().getTeams()
 
     const groups = [
+      ...this.state.preGroups,
       {
         points: [this.state.currentPlayer.getPosition()],
         color: '#df8a00',

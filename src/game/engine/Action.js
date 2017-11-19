@@ -2,7 +2,7 @@
 
 class Action {
   distance: number // distance from player
-  damage: number // damage of action (negative is attacking/positive is curing)
+  damage: number // damage of action (positive is attacking/negative is curing)
   variation: number // percent of variation of damage
   zone: number // zone effect distance
 

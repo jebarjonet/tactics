@@ -71,8 +71,8 @@ class Player {
   getWalk = () => this.walk
   setWalk = (walk: number) => (this.walk = walk)
 
-  // undergo action (decrease/increase player life)
-  undergoAction = (
+  // apply action on player (decrease/increase player's life)
+  applyAction = (
     action: ActionType,
   ): {
     damage: number, // damage undergone by player
@@ -84,7 +84,7 @@ class Player {
     const damage = Math.floor(
       random(initialDamage - variation, initialDamage + variation),
     )
-    this.addLife(damage)
+    this.addLife(-damage)
     return { damage }
   }
 }

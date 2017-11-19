@@ -77,7 +77,7 @@ class GameState {
     const distance = sample([1, 1, 2, 3, 4])
     return new Action({
       distance,
-      damage: -(4 - distance + random(1, 3)),
+      damage: 4 - distance + random(1, 3),
       zone: distance > 1 ? sample([0, 0, 0, 1, 2]) : 0,
     })
   }
