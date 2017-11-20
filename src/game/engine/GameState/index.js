@@ -66,7 +66,12 @@ class GameState {
       },
       random(3, 5),
       random(1, 2),
-      actions,
+      actions.concat(
+        new Action({
+          distance: 0,
+          damage: -2,
+        }),
+      ),
     )
   }
   removePlayer = (player: PlayerType) => {

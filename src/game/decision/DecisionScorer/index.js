@@ -98,7 +98,8 @@ class DecisionScorer {
         maximumPlayerMoveZone,
       ).filter(node => node.cost <= player.getWalk() * round)
 
-      otherPlayers.forEach(target => {
+      // include player in potential targets
+      players.forEach(target => {
         // zone around target that player can reach if intersecting its move zone
         const maxActionDistanceZone: Array<NodeType> = hashToArray(
           core
@@ -204,7 +205,7 @@ class DecisionScorer {
   score = (decision: Object): number => {
     const score = decision.actionScore * decision.positionScore
     // high round => less score
-    return Number((score * (1 / decision.round)).toFixed(3))
+    return Number((score * (1 / decision.round)).toFixed(6))
   }
 
   getPositionScorer = (): PositionScorerType => this.positionScorer

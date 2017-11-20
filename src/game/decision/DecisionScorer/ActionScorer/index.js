@@ -1,6 +1,6 @@
 // @flow
 
-import { sumBy } from 'lodash/fp'
+import { clamp, flow, map, max } from 'lodash/fp'
 import type PlayerType from 'game/engine/Player'
 import type ActionType from 'game/engine/Action'
 
@@ -31,8 +31,6 @@ class ActionScorer {
       return 0
     }
 
-    // player life
-
     const opportunityScore = this.getOpportunityScore(target, action)
     const dangerousnessScore = this.getDangerousnessScore(target)
 
@@ -49,12 +47,12 @@ class ActionScorer {
     // left life of player
     // base of 1.1 so we don't end with 1 - 1 = 0 when player is full life
     // todo: Exponential score
-    const leftLifeScore = 1.1 - target.getLife() / target.getMaxLife()
+    const leftLifeScore = 1.001 - target.getLife() / target.getMaxLife()
 
     // will kill player on applying action on it
     // todo: consider curing actions
     const killOnActionScore =
-      target.getLife() - action.getDamage() <= 0 ? 1 : 0.5
+      target.getLife() - Math.abs(action.getDamage()) <= 0 ? 1 : 0.5
 
     return leftLifeScore * killOnActionScore
   }
@@ -72,21 +70,36 @@ class ActionScorer {
       return 0
     }
 
-    // damage of actions of player (attack or cure actions)
+    const maxActionDangerousnessScore = flow([
+      map(this.actionDangerousnessScore),
+      max,
+    ])(actions)
+
+    // walk distance of player (max 10)
+    // todo: Exponential score
+    const walkScore = clamp(0.5, 1, (target.getWalk() + target.getJump()) / 10)
+
+    return maxActionDangerousnessScore * walkScore
+  }
+
+  /**
+   * Action dangerousness score
+   * @param action
+   */
+  actionDangerousnessScore = (action: ActionType): number => {
+    // damage score (max 10) (attack or cure actions)
     // todo: Linear score
-    const damageScore =
-      sumBy(action => Math.abs(action.getDamage()))(actions) / actions.length
+    const damageScore = clamp(0, 1, Math.abs(action.getDamage()) / 10)
 
-    // full distance of actions of player
+    // full distance score (max 8)
     // todo: Exponential score
-    const distanceScore =
-      sumBy(action => action.getFullDistance())(actions) / actions.length
+    const distanceScore = clamp(0, 1, action.getFullDistance() / 8)
 
-    // walk distance of player
+    // zone effect score (max 5)
     // todo: Exponential score
-    const walkScore = target.getWalk() + target.getJump()
+    const zoneScore = clamp(0.6, 1, action.getZone() / 5)
 
-    return damageScore * distanceScore * walkScore
+    return damageScore * distanceScore * zoneScore
   }
 }
 
