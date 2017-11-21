@@ -8,6 +8,10 @@ import Map from 'game/engine/Map'
 import MapType from 'game/engine/Map'
 import PlayerType from 'game/engine/Player'
 
+/**
+ * Maps Analyser returns influence zones (allies and enemies areas)
+ * Todo: rewrite
+ */
 class MapsAnalyser {
   core: CoreType
 

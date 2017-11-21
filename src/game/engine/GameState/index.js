@@ -9,6 +9,9 @@ import type PlayerType from 'game/engine/Player'
 import Action from 'game/engine/Action'
 import type ActionType from 'game/engine/Action'
 
+/**
+ * Maintains state of game (players & teams)
+ */
 class GameState {
   core: CoreType
   teams: Array<TeamType>

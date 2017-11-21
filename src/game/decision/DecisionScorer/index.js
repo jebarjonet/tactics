@@ -35,16 +35,18 @@ export type SelectedDecisionType = {
   target: PlayerType,
 }
 
+/**
+ * Returns best decision to perform for a player
+ */
 class DecisionScorer {
   actionScorer: ActionScorerType
   core: CoreType
   player: PlayerType
   positionScorer: PositionScorerType
 
-  constructor(core: CoreType, player: PlayerType) {
+  constructor(core: CoreType) {
     this.actionScorer = new ActionScorer(this)
     this.core = core
-    this.player = player
     this.positionScorer = new PositionScorer(this)
   }
 

@@ -24,15 +24,13 @@ class Core {
     // start game state
     this.gameState = new GameState(this, 2, 3)
 
-    this.decisionScorer = new DecisionScorer(
-      this,
-      this.gameState.getPlayers()[0],
-    )
-
+    // todo: use mapsAnalyser for influence maps
     // const mapsAnalyser = new MapsAnalyser(this)
     // console.log(
     //   mapsAnalyser.getAttractionMap(this.gameState.getPlayers()[0]).getGrid(),
     // )
+
+    this.decisionScorer = new DecisionScorer(this)
   }
 
   getDecisionScorer = (): DecisionScorerType => this.decisionScorer

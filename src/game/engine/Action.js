@@ -1,5 +1,8 @@
 // @flow
 
+/**
+ * Something a player can do (attack/cure)
+ */
 class Action {
   distance: number // distance from player
   damage: number // damage of action (positive is attacking/negative is curing)

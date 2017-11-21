@@ -6,6 +6,9 @@ import type ActionType from 'game/engine/Action'
 
 import type DecisionScorerType, { AvailableDecisionType } from '../'
 
+/**
+ * Score action of player when choosing which action to perform
+ */
 class ActionScorer {
   decisionScorer: DecisionScorerType
 

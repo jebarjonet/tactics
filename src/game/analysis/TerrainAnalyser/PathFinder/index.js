@@ -39,6 +39,9 @@ const CLOSED_LIST = 0
 const OPEN_LIST = 1
 const STRAIGHT_COST = 1
 
+/**
+ * A* pathfinder
+ */
 class PathFinder {
   acceptableTiles: Array<number>
   collisionGrid: GridType

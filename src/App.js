@@ -24,9 +24,14 @@ class App extends Component {
   }
 
   componentDidMount() {
+    core.getDecisionScorer().setPlayer(this.state.currentPlayer)
     this.round()
   }
 
+  /**
+   * Traverse every step of a round and display it on window
+   * Todo: rewrite
+   */
   round = () => {
     setTimeout(() => {
       const decisionScorer = core.getDecisionScorer()
@@ -162,9 +167,10 @@ class App extends Component {
         points: teams[1].getPlayers().map(player => player.getPosition()),
         color: '#cc4342',
       },
+      // display 3rd team if any
       // {
       //   points: teams[2].getPlayers().map(player => player.getPosition()),
-      //   color: '#cc249d',
+      //   color: '#b20054',
       // },
       {
         points: core.getTerrain().getUnwalkableZone(),
