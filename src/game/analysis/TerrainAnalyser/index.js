@@ -10,7 +10,7 @@ import type {
 import type TerrainType from 'game/engine/Terrain'
 
 /**
- * Terrain Analyser returns helpers to analyse terrain and grids
+ * Helpers to analyse terrain and grids
  */
 class TerrainAnalyser {
   pathFinder: PathFinderType

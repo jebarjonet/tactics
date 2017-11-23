@@ -36,7 +36,7 @@ export type SelectedDecisionType = {
 }
 
 /**
- * Returns best decision to perform for a player
+ * Computes best decision to perform for a player
  */
 class DecisionScorer {
   actionScorer: ActionScorerType
